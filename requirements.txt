@@ -1,0 +1,9 @@
+Django
+djangorestframework
+Pillow
+psycopg2-binary
+python-dotenv
+google-generativeai
+pgvector
+django-cors-headers
+dj-database-url

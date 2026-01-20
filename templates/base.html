@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ebook Store{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#ec4899',
+                        dark: '#0f172a',
+                        'dark-light': '#1e293b',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0f172a;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(236, 72, 153, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #f8fafc;
+        }
+
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .text-gradient {
+            background: linear-gradient(to right, #818cf8, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+
+            {
+            % block extra_css %
+        }
+
+            {
+            % endblock %
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col font-sans antialiased text-slate-200">
+
+    <!-- Navbar -->
+    <header class="fixed w-full top-0 z-50 transition-all duration-300 glass">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-2 group">
+                    <div
+                        class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                        E</div>
+                    <span class="font-bold text-xl tracking-tight text-white">Ebook<span
+                            class="font-light">Store</span></span>
+                </a>
+
+                <!-- Nav -->
+                <nav class="hidden md:flex space-x-8">
+                    <a href="/" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Trang
+                        chủ</a>
+                    <a href="/ai-chat/"
+                        class="text-sm font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>AI Tư vấn
+                    </a>
+                    <a href="/admin/"
+                        class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Admin</a>
+                </nav>
+
+                <!-- Auth & Wallet -->
+                <div class="hidden md:flex items-center gap-4">
+                    {% if user.is_authenticated %}
+                    <div
+                        class="px-4 py-1.5 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center gap-2">
+                        <span class="text-xl">🪙</span>
+                        <span class="font-bold text-yellow-400">{{ user.balance }}</span>
+                    </div>
+                    <div class="flex items-center gap-3 pl-2 border-l border-slate-700">
+                        <div class="text-right hidden lg:block">
+                            <div class="text-sm font-bold text-white">{{ user.email|truncatechars:15 }}</div>
+                            <a href="{% url 'logout' %}" class="text-xs text-red-400 hover:text-red-300">Đăng xuất</a>
+                        </div>
+                        <div
+                            class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 border border-white/20 flex items-center justify-center font-bold text-xs uppercase overflow-hidden">
+                            {% if user.avatar %}
+                            <img src="{{ user.avatar.url }}" class="w-full h-full object-cover">
+                            {% else %}
+                            {{ user.email|slice:":1" }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="text-sm font-medium text-slate-300 hover:text-white">Đăng
+                        nhập</a>
+                    <a href="{% url 'register' %}"
+                        class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all">Đăng
+                        ký</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="fixed top-20 right-5 z-50 space-y-2 pointer-events-none">
+        {% for message in messages %}
+        <div
+            class="pointer-events-auto bg-slate-800/90 backdrop-blur border border-white/10 text-white px-6 py-4 rounded-xl shadow-2xl animate-bounce">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main -->
+    <main class="flex-grow pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-20 border-t border-slate-800 bg-slate-900/50 backdrop-blur-sm">
+        <div class="max-w-7xl mx-auto py-8 text-center text-slate-500 text-sm">
+            © 2026 Ebook Store. Powered by Gemini AI
+        </div>
+    </footer>
+
+    <!-- CSRF Helper -->
+    <script>
+        function getCookie(name) {
+            let v = null;
+            if (document.cookie && document.cookie !== '') {
+                document.cookie.split(';').forEach(c => {
+                    const cookie = c.trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) v = decodeURIComponent(cookie.substring(name.length + 1));
+                });
+            }
+            return v;
+        }
+        const csrftoken = getCookie('csrftoken');
+        async function fetchWithCSRF(url, options = {}) {
+            return fetch(url, { ...options, headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken, ...(options.headers || {}) } });
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

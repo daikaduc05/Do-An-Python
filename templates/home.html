@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block title %}Trang chủ - Ebook Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-pattern {
+        background-color: #0f172a;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%236366f1' fill-opacity='0.05'%3E%3Cpath fill-rule='evenodd' d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h2l-2 2V0zm0 4l4-4h2l-6 6V4zm0 4l8-8h2L40 10V8zm0 4L52 0h2L40 14V12zM0 40h2L0 42v-2zm0 4l4-4h2L0 46v-2zm0 4l8-8h2L0 50v-2zm0 4L12 40h2L0 54v-2z'/%3E%3C/g%3E%3C/svg%3E");
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div
+    class="relative overflow-hidden rounded-3xl glass border border-white/5 mb-16 p-8 md:p-12 text-center hero-pattern shadow-2xl">
+    <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent to-[#0f172a]/80"></div>
+
+    <div class="relative z-10 max-w-3xl mx-auto space-y-6">
+        <span
+            class="inline-block px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium mb-4 animate-bounce">
+            ✨ AI Recommendation Engine v2.0
+        </span>
+
+        <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight">
+            Khám phá thế giới <span class="text-gradient">Tri Thức</span>
+        </h1>
+
+        <p class="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto">
+            Tìm kiếm hàng ngàn đầu sách với sự trợ giúp của AI. Trò chuyện, khám phá và đọc sách mọi lúc mọi nơi.
+        </p>
+
+        <!-- Search Box -->
+        <div class="mt-8 relative max-w-2xl mx-auto group">
+            <div
+                class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-full blur opacity-25 group-hover:opacity-50 transition-opacity">
+            </div>
+            <div
+                class="relative flex items-center bg-slate-900/90 backdrop-blur rounded-full border border-slate-700 p-2 shadow-xl group-focus-within:border-indigo-500 transition-colors">
+                <div class="pl-4 text-slate-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+                <input type="text" id="searchInput"
+                    class="w-full bg-transparent border-none focus:ring-0 text-white placeholder-slate-500 h-10 px-4 text-lg outline-none"
+                    placeholder="Tìm sách, tác giả hoặc mô tả nội dung...">
+                <button
+                    class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-full font-medium transition-colors">
+                    Tìm kiếm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Filters (Example) -->
+<div class="flex flex-wrap justify-center gap-3 mb-12">
+    <button
+        class="px-4 py-2 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-indigo-500/50 hover:bg-indigo-500/10 text-slate-400 hover:text-indigo-400 transition-all font-medium text-sm">
+        Tất cả
+    </button>
+    <button
+        class="px-4 py-2 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-indigo-500/50 hover:bg-indigo-500/10 text-slate-400 hover:text-indigo-400 transition-all font-medium text-sm">
+        💻 Công nghệ
+    </button>
+    <button
+        class="px-4 py-2 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-indigo-500/50 hover:bg-indigo-500/10 text-slate-400 hover:text-indigo-400 transition-all font-medium text-sm">
+        📚 Tiểu thuyết
+    </button>
+    <button
+        class="px-4 py-2 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-indigo-500/50 hover:bg-indigo-500/10 text-slate-400 hover:text-indigo-400 transition-all font-medium text-sm">
+        🧠 Khoa học
+    </button>
+</div>
+
+<!-- Ebook Grid -->
+<div id="ebookList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
+        <div class="w-10 h-10 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
+        <p>Đang tải thư viện sách...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Fetch ebooks from API
+    async function loadEbooks() {
+        try {
+            const response = await fetch('/api/ebooks/');
+            const data = await response.json();
+            displayEbooks(data.ebooks || []);
+        } catch (error) {
+            document.getElementById('ebookList').innerHTML = `
+                <div class="col-span-full text-center py-20">
+                    <p class="text-xl text-slate-400 mb-2">⚠️ Có lỗi xảy ra</p>
+                    <p class="text-slate-600">Không thể tải danh sách sách</p>
+                </div>
+            `;
+        }
+    }
+
+    function getGradient(id) {
+        const gradients = [
+            'from-purple-500 to-indigo-600',
+            'from-pink-500 to-rose-500',
+            'from-blue-500 to-cyan-500',
+            'from-emerald-500 to-teal-500',
+            'from-orange-500 to-amber-500'
+        ];
+        return gradients[id % gradients.length];
+    }
+
+    function displayEbooks(ebooks) {
+        const container = document.getElementById('ebookList');
+
+        if (ebooks.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full bg-slate-800/50 rounded-2xl p-12 text-center border border-dashed border-slate-700">
+                    <div class="text-6xl mb-4">📚</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Chưa có sách nào</h3>
+                    <p class="text-slate-400 mb-6">Thư viện hiện đang trống. Thêm sách mới ngay!</p>
+                    <a href="/admin/" class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition-colors">
+                        <span>Vào Admin Panel</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </a>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = ebooks.map(ebook => `
+            <a href="/ebook/${ebook.id}/" class="group glass-card rounded-2xl overflow-hidden flex flex-col h-full hover:shadow-2xl hover:shadow-indigo-500/20">
+                <!-- Cover -->
+                <div class="aspect-[2/3] w-full bg-gradient-to-br ${getGradient(ebook.id)} p-6 flex items-center justify-center relative overflow-hidden">
+                    <div class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
+                    <span class="text-9xl drop-shadow-2xl opacity-90 transform group-hover:scale-110 transition-transform duration-500">📖</span>
+                    
+                    <!-- ID Badge for Debug -->
+                    <!-- <div class="absolute top-2 left-2 text-xs text-white/50">#${ebook.id}</div> -->
+                    
+                    <!-- Price Tag -->
+                    <div class="absolute top-4 right-4 bg-black/40 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-xs font-bold text-yellow-400 flex items-center gap-1 shadow-lg">
+                        <span>${ebook.price}</span>
+                        <span>🪙</span>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="p-5 flex flex-col flex-grow bg-slate-900/40">
+                    <div class="text-xs font-bold text-indigo-400 mb-2 uppercase tracking-wide border-b border-white/5 pb-2">${ebook.category}</div>
+                    <h3 class="text-lg font-bold text-white mb-1 leading-tight group-hover:text-indigo-300 transition-colors line-clamp-2">${ebook.title}</h3>
+                    <p class="text-slate-400 text-sm mb-4 font-medium">${ebook.author}</p>
+                    
+                    <div class="mt-auto flex items-center justify-between pt-4 border-t border-slate-700/50">
+                        <span class="text-xs text-slate-500 font-medium group-hover:text-white transition-colors">Xem chi tiết &rarr;</span>
+                        <div class="w-8 h-8 rounded-full bg-indigo-500/10 hover:bg-indigo-500 text-indigo-400 hover:text-white flex items-center justify-center transition-all shadow-lg">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        `).join('');
+    }
+
+    // Search functionality
+    let debounceTimer;
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(async () => {
+            const query = e.target.value.trim();
+            if (query.length < 2) {
+                if (query.length === 0) loadEbooks();
+                return;
+            }
+
+            try {
+                // Show loading state
+                document.getElementById('ebookList').innerHTML = `
+                    <div class="col-span-full flex flex-col items-center py-20">
+                        <div class="w-10 h-10 border-4 border-indigo-500 rounded-full animate-spin border-t-transparent mb-4"></div>
+                        <span class="text-slate-400 font-medium">Gemini AI đang suy nghĩ...</span>
+                    </div>
+                `;
+
+                const response = await fetch(`/api/ai/search/?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                displayEbooks(data.results || []);
+            } catch (error) {
+                console.error('Search error:', error);
+            }
+        }, 500); // Debounce
+    });
+
+    // Load ebooks on page load
+    loadEbooks();
+</script>
+{% endblock %}

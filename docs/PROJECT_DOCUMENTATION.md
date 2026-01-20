@@ -1,4 +1,4 @@
-# 📚 Tài Liệu Dự Án: Website Bán Sách Online
+# 📚 Tài Liệu Dự Án: Website Bán Ebook Online
 
 ## Mục Lục
 1. [Giới Thiệu](#giới-thiệu)
@@ -8,18 +8,18 @@
 5. [Database Schema](#database-schema)
 6. [API Endpoints](#api-endpoints)
 7. [Hướng Dẫn Cài Đặt](#hướng-dẫn-cài-đặt)
-8. [Tích Hợp AI](#tích-hợp-ai)
+8. [Tích Hợp AI với RAG](#tích-hợp-ai-với-rag)
 
 ---
 
 ## Giới Thiệu
 
-Dự án xây dựng một website bán sách online với các tính năng cơ bản như đăng nhập/đăng ký, quản lý giỏ hàng, phân loại sách theo danh mục, và **đề xuất sách thông minh bằng AI**.
+Dự án xây dựng một website **bán Ebook online** với hệ thống **tiền ảo (Coins)** để nạp tiền và mua sách. Tích hợp **AI đề xuất sách sử dụng RAG (Retrieval Augmented Generation)** với **pgvector**.
 
 ### Mục Tiêu
-- Tạo trải nghiệm mua sách trực tuyến tiện lợi
-- Hệ thống đề xuất sách cá nhân hóa dựa trên AI
-- Giao diện thân thiện, dễ sử dụng
+- 📖 Mua ebook trực tiếp bằng tiền ảo (Coins)
+- 💰 Nạp tiền → Mua sách → Tải file
+- 🤖 AI đề xuất sách sử dụng **RAG + PostgreSQL pgvector**
 
 ---
 
@@ -31,490 +31,475 @@ Dự án xây dựng một website bán sách online với các tính năng cơ 
 | **Django** | 4.2+ | Web Framework |
 | **Django REST Framework** | 3.14+ | Xây dựng REST API |
 | **PostgreSQL** | 14+ | Cơ sở dữ liệu |
-| **Redis** | 7.0+ | Cache & Session |
-| **Celery** | 5.3+ | Task Queue (cho AI processing) |
-| **OpenAI API / Google AI** | Latest | Đề xuất sách bằng AI |
+| **pgvector** | 0.5+ | Vector similarity search cho RAG |
+| **OpenAI API** | Latest | Embeddings + Chat Completion |
 
 ---
 
 ## Cấu Trúc Dự Án
 
 ```
-bookstore/
+ebook_store/
 ├── manage.py
 ├── requirements.txt
-├── .env                      # Environment variables
+├── .env
 │
-├── bookstore/                # Project settings
-│   ├── __init__.py
+├── ebook_store/              # Project settings
 │   ├── settings.py
 │   ├── urls.py
-│   ├── wsgi.py
-│   └── asgi.py
+│   └── wsgi.py
 │
 ├── apps/
-│   ├── accounts/             # Xác thực người dùng
-│   │   ├── models.py
-│   │   ├── views.py
-│   │   ├── serializers.py
-│   │   ├── urls.py
-│   │   └── forms.py
-│   │
-│   ├── books/                # Quản lý sách
-│   │   ├── models.py
-│   │   ├── views.py
-│   │   ├── serializers.py
-│   │   ├── urls.py
-│   │   └── admin.py
-│   │
-│   ├── categories/           # Danh mục sách
+│   ├── accounts/             # User & Authentication
 │   │   ├── models.py
 │   │   ├── views.py
 │   │   └── urls.py
 │   │
-│   ├── cart/                 # Giỏ hàng
-│   │   ├── models.py
-│   │   ├── views.py
-│   │   ├── serializers.py
-│   │   └── urls.py
-│   │
-│   ├── orders/               # Đơn hàng
+│   ├── ebooks/               # Ebook & Author
 │   │   ├── models.py
 │   │   ├── views.py
 │   │   └── urls.py
 │   │
-│   └── ai_recommendations/   # Đề xuất AI
-│       ├── services.py
+│   ├── transactions/         # Nạp tiền & Mua sách
+│   │   ├── models.py
+│   │   ├── views.py
+│   │   └── urls.py
+│   │
+│   └── ai_rag/               # 🤖 AI RAG với pgvector
+│       ├── models.py         # EbookEmbedding
+│       ├── services.py       # RAG Service
 │       ├── views.py
 │       └── urls.py
 │
-├── templates/                # HTML Templates
-│   ├── base.html
-│   ├── accounts/
-│   ├── books/
-│   └── cart/
-│
-└── static/                   # Static files
-    ├── css/
-    ├── js/
-    └── images/
+├── templates/
+├── static/
+└── media/
+    └── ebooks/               # File ebook (PDF)
 ```
 
 ---
 
 ## Các Tính Năng Chính
 
-### 1. 🔐 Hệ Thống Đăng Nhập/Đăng Ký
+### 1. 🔐 Đăng Nhập/Đăng Ký
 
-**Chức năng:**
-- Đăng ký tài khoản mới
-- Đăng nhập/Đăng xuất
-- Quên mật khẩu
-- Xác thực email
-- Quản lý profile người dùng
+- Đăng ký tài khoản
+- Đăng nhập/Đăng xuất  
+- Xem số dư Coins
 
-**Model User (accounts/models.py):**
+### 2. 📖 Quản Lý Ebook
+
+- Xem danh sách ebook
+- Xem chi tiết ebook
+- Tìm kiếm ebook
+- Lọc theo tác giả, thể loại
+
+### 3. 💰 Hệ Thống Tiền Ảo
+
+- **Nạp tiền vào**: User nạp tiền → Cộng Coins
+- **Tiêu tiền (mua sách)**: Mua ebook → Trừ Coins → Tải file
+
+### 4. 🤖 AI Đề Xuất Sách (RAG + pgvector)
+
+- Tìm kiếm semantic bằng vector similarity
+- Chat với AI có context từ database sách
+- Đề xuất sách chính xác dựa trên nội dung thực tế
+
+---
+
+## Database Schema
+
+### 4 Bảng Chính + 1 Bảng Embedding
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         DATABASE SCHEMA                          │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────┐          ┌─────────────────────┐
+│        User         │          │       Author        │
+├─────────────────────┤          ├─────────────────────┤
+│ id (PK)             │          │ id (PK)             │
+│ username            │          │ name                │
+│ email               │          │ bio                 │
+│ password            │          │ image               │
+│ phone               │          │ created_at          │
+│ avatar              │          └──────────┬──────────┘
+│ balance (Coins) 💰  │                     │
+│ created_at          │                     │ 1:N
+│ updated_at          │                     │
+└──────────┬──────────┘                     ▼
+           │                     ┌─────────────────────┐
+           │                     │       Ebook         │
+           │                     ├─────────────────────┤
+           │                     │ id (PK)             │
+           │                     │ title               │
+           │                     │ description         │
+           │                     │ author_id (FK) ─────┼──► Author
+           │                     │ category            │
+           │                     │ price (Coins)       │
+           │ 1:N                 │ file_url 📁         │
+           │                     │ cover_image         │
+           │                     │ embedding 🧠        │◄── Vector (1536 dimensions)
+           │                     │ is_active           │
+           │                     │ created_at          │
+           │                     └─────────────────────┘
+           │
+           ▼
+┌─────────────────────┐
+│    Transaction      │
+├─────────────────────┤
+│ id (PK)             │
+│ user_id (FK) ───────┼──► User
+│ type                │    ('deposit' | 'purchase')
+│ amount              │    (+ nạp vào, - mua sách)
+│ ebook_id (FK)       │──► Ebook (nullable, chỉ khi mua)
+│ description         │
+│ balance_after       │
+│ created_at          │
+└─────────────────────┘
+```
+
+### Chi Tiết Các Bảng
+
+#### 1. User (Người dùng)
+
 ```python
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-class CustomUser(AbstractUser):
+class User(AbstractUser):
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15, blank=True)
-    address = models.TextField(blank=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True)
+    balance = models.PositiveIntegerField(default=0)  # Số Coins hiện có
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
     
-    def __str__(self):
-        return self.email
+    def deposit(self, amount):
+        """Nạp tiền vào tài khoản"""
+        self.balance += amount
+        self.save()
+    
+    def can_purchase(self, price):
+        """Kiểm tra đủ tiền mua không"""
+        return self.balance >= price
+    
+    def purchase(self, price):
+        """Trừ tiền khi mua sách"""
+        if self.can_purchase(price):
+            self.balance -= price
+            self.save()
+            return True
+        return False
 ```
 
-### 2. 📂 Danh Mục Sách (Categories)
+#### 2. Author (Tác giả)
 
-**Chức năng:**
-- Hiển thị danh sách danh mục
-- Lọc sách theo danh mục
-- Danh mục cha/con (nested categories)
-
-**Model Category (categories/models.py):**
 ```python
-from django.db import models
-
-class Category(models.Model):
-    name = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True)
-    description = models.TextField(blank=True)
-    parent = models.ForeignKey(
-        'self', 
-        on_delete=models.CASCADE, 
-        null=True, 
-        blank=True, 
-        related_name='children'
-    )
-    image = models.ImageField(upload_to='categories/', blank=True)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        verbose_name_plural = 'Categories'
-        ordering = ['name']
-    
-    def __str__(self):
-        return self.name
-```
-
-### 3. 📖 Quản Lý Sách (Books)
-
-**Chức năng:**
-- CRUD sách (Admin)
-- Hiển thị danh sách sách
-- Chi tiết sách
-- Tìm kiếm sách
-- Lọc theo giá, tác giả, nhà xuất bản
-
-**Model Book (books/models.py):**
-```python
-from django.db import models
-from apps.categories.models import Category
-
 class Author(models.Model):
     name = models.CharField(max_length=200)
     bio = models.TextField(blank=True)
     image = models.ImageField(upload_to='authors/', blank=True)
-    
-    def __str__(self):
-        return self.name
-
-class Publisher(models.Model):
-    name = models.CharField(max_length=200)
-    address = models.TextField(blank=True)
-    
-    def __str__(self):
-        return self.name
-
-class Book(models.Model):
-    title = models.CharField(max_length=500)
-    slug = models.SlugField(unique=True)
-    isbn = models.CharField(max_length=13, unique=True)
-    description = models.TextField()
-    
-    # Relationships
-    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='books')
-    publisher = models.ForeignKey(Publisher, on_delete=models.CASCADE, related_name='books')
-    categories = models.ManyToManyField(Category, related_name='books')
-    
-    # Pricing
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    discount_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    
-    # Inventory
-    stock = models.PositiveIntegerField(default=0)
-    
-    # Media
-    cover_image = models.ImageField(upload_to='books/covers/')
-    
-    # Metadata
-    publication_date = models.DateField()
-    pages = models.PositiveIntegerField()
-    language = models.CharField(max_length=50, default='Vietnamese')
-    
-    # Status
-    is_active = models.BooleanField(default=True)
-    is_featured = models.BooleanField(default=False)
-    
-    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     
-    class Meta:
-        ordering = ['-created_at']
+    def __str__(self):
+        return self.name
+```
+
+#### 3. Ebook (Sách điện tử) - Có Vector Embedding
+
+```python
+from pgvector.django import VectorField
+
+class Ebook(models.Model):
+    CATEGORY_CHOICES = [
+        ('fiction', 'Tiểu thuyết'),
+        ('science', 'Khoa học'),
+        ('business', 'Kinh doanh'),
+        ('self_help', 'Phát triển bản thân'),
+        ('technology', 'Công nghệ'),
+        ('history', 'Lịch sử'),
+        ('children', 'Thiếu nhi'),
+        ('other', 'Khác'),
+    ]
+    
+    title = models.CharField(max_length=500)
+    description = models.TextField()
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='ebooks')
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    price = models.PositiveIntegerField(help_text="Giá bằng Coins")
+    file_url = models.FileField(upload_to='ebooks/')
+    cover_image = models.ImageField(upload_to='covers/')
+    
+    # 🧠 Vector embedding cho RAG (OpenAI text-embedding-3-small: 1536 dimensions)
+    embedding = VectorField(dimensions=1536, null=True, blank=True)
+    
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
         return self.title
     
-    @property
-    def final_price(self):
-        return self.discount_price if self.discount_price else self.price
-
-class BookReview(models.Model):
-    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='reviews')
-    user = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
-    rating = models.PositiveIntegerField(choices=[(i, i) for i in range(1, 6)])
-    comment = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        unique_together = ['book', 'user']
+    def get_text_for_embedding(self):
+        """Text để tạo embedding"""
+        return f"{self.title}. {self.author.name}. {self.category}. {self.description}"
 ```
 
-### 4. 🛒 Giỏ Hàng (Shopping Cart)
+#### 4. Transaction (Giao dịch)
 
-**Chức năng:**
-- Thêm sách vào giỏ
-- Cập nhật số lượng
-- Xóa sách khỏi giỏ
-- Tính tổng tiền
-- Lưu giỏ hàng (session hoặc database)
-
-**Model Cart (cart/models.py):**
 ```python
-from django.db import models
-from apps.accounts.models import CustomUser
-from apps.books.models import Book
-
-class Cart(models.Model):
-    user = models.OneToOneField(
-        CustomUser, 
-        on_delete=models.CASCADE, 
-        related_name='cart',
+class Transaction(models.Model):
+    TYPE_CHOICES = [
+        ('deposit', 'Nạp tiền'),      # + Coins
+        ('purchase', 'Mua sách'),     # - Coins
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    amount = models.IntegerField()  # + khi nạp, - khi mua
+    ebook = models.ForeignKey(
+        Ebook, 
+        on_delete=models.SET_NULL, 
         null=True, 
         blank=True
     )
-    session_key = models.CharField(max_length=40, null=True, blank=True)
+    description = models.CharField(max_length=500)
+    balance_after = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    def __str__(self):
-        return f"Cart {self.id}"
-    
-    @property
-    def total_items(self):
-        return sum(item.quantity for item in self.items.all())
-    
-    @property
-    def total_price(self):
-        return sum(item.subtotal for item in self.items.all())
-
-class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
-    book = models.ForeignKey(Book, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
-    added_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        unique_together = ['cart', 'book']
-    
-    @property
-    def subtotal(self):
-        return self.book.final_price * self.quantity
-```
-
-### 5. 🤖 Đề Xuất Sách Bằng AI
-
-**Chức năng:**
-- Đề xuất sách dựa trên lịch sử mua hàng
-- Đề xuất sách tương tự
-- Chat với AI để tìm sách phù hợp
-- Đề xuất dựa trên sở thích người dùng
-
-**Service AI (ai_recommendations/services.py):**
-```python
-import openai
-from django.conf import settings
-from apps.books.models import Book
-
-class AIRecommendationService:
-    def __init__(self):
-        openai.api_key = settings.OPENAI_API_KEY
-    
-    def get_recommendations_by_history(self, user):
-        """Đề xuất sách dựa trên lịch sử mua hàng"""
-        # Lấy lịch sử mua hàng
-        purchased_books = user.orders.values_list('items__book__title', flat=True)
-        
-        if not purchased_books:
-            return self.get_popular_books()
-        
-        prompt = f"""
-        Dựa trên các sách đã mua sau đây:
-        {', '.join(purchased_books)}
-        
-        Hãy đề xuất 5 cuốn sách tương tự mà người dùng có thể thích.
-        Trả về dạng JSON với các trường: title, author, reason
-        """
-        
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "Bạn là một chuyên gia về sách."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        
-        return response.choices[0].message.content
-    
-    def get_similar_books(self, book):
-        """Đề xuất sách tương tự"""
-        prompt = f"""
-        Đề xuất 5 cuốn sách tương tự với:
-        Tên sách: {book.title}
-        Tác giả: {book.author.name}
-        Thể loại: {', '.join(book.categories.values_list('name', flat=True))}
-        Mô tả: {book.description[:500]}
-        
-        Trả về dạng JSON array với các trường: title, author, similarity_reason
-        """
-        
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "Bạn là một chuyên gia về sách."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        
-        return response.choices[0].message.content
-    
-    def chat_recommendation(self, user_message, user_preferences=None):
-        """Chat với AI để tìm sách phù hợp"""
-        system_prompt = """
-        Bạn là trợ lý tư vấn sách thông minh. 
-        Nhiệm vụ của bạn là:
-        1. Hiểu nhu cầu đọc sách của người dùng
-        2. Đề xuất những cuốn sách phù hợp
-        3. Giải thích lý do tại sao sách đó phù hợp
-        
-        Hãy trả lời bằng tiếng Việt, thân thiện và hữu ích.
-        """
-        
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_message}
-        ]
-        
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=messages,
-            temperature=0.7,
-            max_tokens=1000
-        )
-        
-        return response.choices[0].message.content
-    
-    def get_popular_books(self, limit=10):
-        """Lấy sách phổ biến khi không có lịch sử"""
-        return Book.objects.filter(
-            is_active=True
-        ).order_by('-created_at')[:limit]
-```
-
-**View AI (ai_recommendations/views.py):**
-```python
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from .services import AIRecommendationService
-
-class AIRecommendationView(APIView):
-    permission_classes = [IsAuthenticated]
-    
-    def __init__(self):
-        super().__init__()
-        self.ai_service = AIRecommendationService()
-    
-    def get(self, request):
-        """Lấy đề xuất sách dựa trên lịch sử"""
-        recommendations = self.ai_service.get_recommendations_by_history(request.user)
-        return Response({'recommendations': recommendations})
-    
-    def post(self, request):
-        """Chat với AI để tìm sách"""
-        user_message = request.data.get('message', '')
-        
-        if not user_message:
-            return Response({'error': 'Message is required'}, status=400)
-        
-        response = self.ai_service.chat_recommendation(user_message)
-        return Response({'response': response})
-
-class SimilarBooksView(APIView):
-    def get(self, request, book_id):
-        """Lấy sách tương tự"""
-        from apps.books.models import Book
-        
-        try:
-            book = Book.objects.get(id=book_id)
-        except Book.DoesNotExist:
-            return Response({'error': 'Book not found'}, status=404)
-        
-        ai_service = AIRecommendationService()
-        similar_books = ai_service.get_similar_books(book)
-        
-        return Response({'similar_books': similar_books})
+        ordering = ['-created_at']
 ```
 
 ---
 
-## Database Schema
+## Tích Hợp AI với RAG
 
-### ERD (Entity Relationship Diagram)
+### RAG là gì?
+
+**RAG (Retrieval Augmented Generation)** = Tìm kiếm dữ liệu liên quan + Đưa vào AI để trả lời
 
 ```
-┌─────────────────┐      ┌─────────────────┐       ┌─────────────────┐
-│   CustomUser    │      │     Category    │       │     Author      │
-├─────────────────┤      ├─────────────────┤       ├─────────────────┤
-│ id              │      │ id              │       │ id              │
-│ username        │      │ name            │       │ name            │
-│ email           │      │ slug            │       │ bio             │
-│ password        │      │ description     │       │ image           │
-│ phone           │      │ parent_id (FK)  │       └────────┬────────┘
-│ address         │      │ image           │                │
-│ avatar          │      │ is_active       │                │
-└────────┬────────┘      └────────┬────────┘                │
-         │                        │                          │
-         │                        │ M:N                      │ 1:N
-         │                        ▼                          ▼
-         │               ┌─────────────────┐       ┌─────────────────┐
-         │               │      Book       │◄──────│   Publisher     │
-         │               ├─────────────────┤       ├─────────────────┤
-         │               │ id              │       │ id              │
-         │               │ title           │       │ name            │
-         │      1:N      │ isbn            │       │ address         │
-         │    ┌──────────│ author_id (FK)  │       └─────────────────┘
-         │    │          │ publisher_id(FK)│
-         │    │          │ price           │
-         │    │          │ stock           │
-         │    │          │ cover_image     │
-         │    │          └────────┬────────┘
-         │    │                   │
-         │    │                   │ 1:N
-         │    ▼                   ▼
-┌────────┴────────┐      ┌─────────────────┐
-│      Cart       │      │   BookReview    │
-├─────────────────┤      ├─────────────────┤
-│ id              │      │ id              │
-│ user_id (FK)    │      │ book_id (FK)    │
-│ session_key     │      │ user_id (FK)    │
-│ created_at      │      │ rating          │
-└────────┬────────┘      │ comment         │
-         │               └─────────────────┘
-         │ 1:N
-         ▼
-┌─────────────────┐      ┌─────────────────┐
-│    CartItem     │      │     Order       │
-├─────────────────┤      ├─────────────────┤
-│ id              │      │ id              │
-│ cart_id (FK)    │      │ user_id (FK)    │
-│ book_id (FK)    │      │ total_amount    │
-│ quantity        │      │ status          │
-└─────────────────┘      │ shipping_address│
-                         │ payment_method  │
-                         └────────┬────────┘
-                                  │ 1:N
-                                  ▼
-                         ┌─────────────────┐
-                         │   OrderItem     │
-                         ├─────────────────┤
-                         │ id              │
-                         │ order_id (FK)   │
-                         │ book_id (FK)    │
-                         │ quantity        │
-                         │ price           │
-                         └─────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                          RAG FLOW                                     │
+└──────────────────────────────────────────────────────────────────────┘
+
+   User Query                    Vector Search                  LLM Response
+       │                              │                              │
+       ▼                              ▼                              ▼
+┌─────────────┐    Embed    ┌─────────────────┐   Context   ┌─────────────┐
+│ "Tôi muốn   │ ─────────►  │   PostgreSQL    │ ─────────►  │   OpenAI    │
+│  đọc sách   │   Query     │   + pgvector    │   Top K     │   GPT-4     │
+│  về AI"     │   Vector    │                 │   Results   │             │
+└─────────────┘             │  ┌───────────┐  │             │  Generate   │
+                            │  │ Ebook 1   │  │             │  Response   │
+                            │  │ Ebook 2   │  │             │  with       │
+                            │  │ Ebook 3   │  │             │  Context    │
+                            │  └───────────┘  │             └──────┬──────┘
+                            └─────────────────┘                    │
+                                                                   ▼
+                                                          ┌─────────────┐
+                                                          │ "Đây là 3   │
+                                                          │  cuốn sách  │
+                                                          │  về AI..."  │
+                                                          └─────────────┘
+```
+
+### Setup pgvector trong PostgreSQL
+
+```sql
+-- Cài đặt extension pgvector
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Index cho tìm kiếm nhanh (HNSW - nhanh hơn IVFFlat)
+CREATE INDEX ON ebooks_ebook 
+USING hnsw (embedding vector_cosine_ops);
+```
+
+### RAG Service (ai_rag/services.py)
+
+```python
+import openai
+from django.conf import settings
+from pgvector.django import CosineDistance
+from apps.ebooks.models import Ebook
+
+class RAGService:
+    def __init__(self):
+        openai.api_key = settings.OPENAI_API_KEY
+        self.embedding_model = "text-embedding-3-small"  # 1536 dimensions
+        self.chat_model = "gpt-3.5-turbo"
+    
+    def get_embedding(self, text):
+        """Tạo embedding vector từ text"""
+        response = openai.Embedding.create(
+            model=self.embedding_model,
+            input=text
+        )
+        return response['data'][0]['embedding']
+    
+    def search_similar_ebooks(self, query, top_k=5):
+        """Tìm ebook tương tự bằng vector similarity"""
+        # 1. Tạo embedding cho query
+        query_embedding = self.get_embedding(query)
+        
+        # 2. Tìm kiếm trong PostgreSQL với pgvector
+        similar_ebooks = Ebook.objects.filter(
+            is_active=True,
+            embedding__isnull=False
+        ).annotate(
+            distance=CosineDistance('embedding', query_embedding)
+        ).order_by('distance')[:top_k]
+        
+        return similar_ebooks
+    
+    def build_context(self, ebooks):
+        """Xây dựng context từ danh sách ebook"""
+        context = "Dưới đây là danh sách sách có trong cửa hàng:\n\n"
+        
+        for i, ebook in enumerate(ebooks, 1):
+            context += f"""
+{i}. **{ebook.title}**
+   - Tác giả: {ebook.author.name}
+   - Thể loại: {ebook.get_category_display()}
+   - Giá: {ebook.price} Coins
+   - Mô tả: {ebook.description[:200]}...
+"""
+        return context
+    
+    def chat(self, user_message):
+        """Chat với AI sử dụng RAG"""
+        # 1. Tìm sách liên quan
+        relevant_ebooks = self.search_similar_ebooks(user_message, top_k=5)
+        
+        # 2. Xây dựng context
+        context = self.build_context(relevant_ebooks)
+        
+        # 3. Gọi LLM với context
+        system_prompt = f"""Bạn là trợ lý tư vấn sách cho cửa hàng ebook.
+
+{context}
+
+Hãy dựa trên danh sách sách trên để tư vấn cho khách hàng.
+- Chỉ đề xuất sách có trong danh sách
+- Giải thích tại sao sách đó phù hợp
+- Nếu không có sách phù hợp, hãy nói rõ
+- Trả lời bằng tiếng Việt, thân thiện
+"""
+        
+        response = openai.ChatCompletion.create(
+            model=self.chat_model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ],
+            temperature=0.7,
+            max_tokens=1000
+        )
+        
+        return {
+            'response': response.choices[0].message.content,
+            'relevant_ebooks': [
+                {
+                    'id': e.id,
+                    'title': e.title,
+                    'author': e.author.name,
+                    'price': e.price,
+                    'cover': e.cover_image.url if e.cover_image else None
+                }
+                for e in relevant_ebooks
+            ]
+        }
+    
+    def create_ebook_embedding(self, ebook):
+        """Tạo embedding cho 1 ebook (gọi khi thêm/sửa sách)"""
+        text = ebook.get_text_for_embedding()
+        embedding = self.get_embedding(text)
+        
+        ebook.embedding = embedding
+        ebook.save(update_fields=['embedding'])
+        
+        return True
+    
+    def update_all_embeddings(self):
+        """Cập nhật embedding cho tất cả ebook (chạy 1 lần)"""
+        ebooks = Ebook.objects.filter(is_active=True)
+        
+        for ebook in ebooks:
+            self.create_ebook_embedding(ebook)
+            print(f"Created embedding for: {ebook.title}")
+        
+        return len(ebooks)
+```
+
+### View AI RAG (ai_rag/views.py)
+
+```python
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .services import RAGService
+
+class AIChatView(APIView):
+    """Chat với AI sử dụng RAG"""
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        message = request.data.get('message', '')
+        
+        if not message:
+            return Response({'error': 'Vui lòng nhập câu hỏi'}, status=400)
+        
+        rag_service = RAGService()
+        result = rag_service.chat(message)
+        
+        return Response(result)
+
+
+class SearchEbooksView(APIView):
+    """Tìm kiếm semantic bằng vector"""
+    
+    def get(self, request):
+        query = request.query_params.get('q', '')
+        
+        if not query:
+            return Response({'error': 'Vui lòng nhập từ khóa'}, status=400)
+        
+        rag_service = RAGService()
+        ebooks = rag_service.search_similar_ebooks(query, top_k=10)
+        
+        data = [{
+            'id': e.id,
+            'title': e.title,
+            'author': e.author.name,
+            'category': e.get_category_display(),
+            'price': e.price,
+            'cover': e.cover_image.url if e.cover_image else None,
+            'similarity': 1 - e.distance  # Convert distance to similarity
+        } for e in ebooks]
+        
+        return Response({'results': data})
+```
+
+### Django Signal - Tự động tạo Embedding
+
+```python
+# apps/ebooks/signals.py
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from .models import Ebook
+from apps.ai_rag.services import RAGService
+
+@receiver(post_save, sender=Ebook)
+def create_embedding_on_save(sender, instance, created, **kwargs):
+    """Tự động tạo embedding khi thêm/sửa ebook"""
+    if instance.is_active and not instance.embedding:
+        rag_service = RAGService()
+        rag_service.create_ebook_embedding(instance)
 ```
 
 ---
@@ -525,211 +510,208 @@ class SimilarBooksView(APIView):
 
 | Method | Endpoint | Mô Tả |
 |--------|----------|-------|
-| POST | `/api/auth/register/` | Đăng ký tài khoản |
+| POST | `/api/auth/register/` | Đăng ký |
 | POST | `/api/auth/login/` | Đăng nhập |
 | POST | `/api/auth/logout/` | Đăng xuất |
-| POST | `/api/auth/password/reset/` | Quên mật khẩu |
-| GET/PUT | `/api/auth/profile/` | Xem/Cập nhật profile |
+| GET | `/api/auth/profile/` | Xem profile & số dư |
 
-### Books
-
-| Method | Endpoint | Mô Tả |
-|--------|----------|-------|
-| GET | `/api/books/` | Danh sách sách |
-| GET | `/api/books/{id}/` | Chi tiết sách |
-| GET | `/api/books/search/?q=keyword` | Tìm kiếm sách |
-| GET | `/api/books/featured/` | Sách nổi bật |
-
-### Categories
+### Ebooks
 
 | Method | Endpoint | Mô Tả |
 |--------|----------|-------|
-| GET | `/api/categories/` | Danh sách danh mục |
-| GET | `/api/categories/{slug}/books/` | Sách theo danh mục |
+| GET | `/api/ebooks/` | Danh sách ebook |
+| GET | `/api/ebooks/{id}/` | Chi tiết ebook |
+| GET | `/api/ebooks/category/{category}/` | Lọc theo thể loại |
 
-### Cart
-
-| Method | Endpoint | Mô Tả |
-|--------|----------|-------|
-| GET | `/api/cart/` | Xem giỏ hàng |
-| POST | `/api/cart/add/` | Thêm vào giỏ |
-| PUT | `/api/cart/update/{item_id}/` | Cập nhật số lượng |
-| DELETE | `/api/cart/remove/{item_id}/` | Xóa khỏi giỏ |
-| DELETE | `/api/cart/clear/` | Xóa toàn bộ giỏ |
-
-### AI Recommendations
+### Transactions (Giao dịch)
 
 | Method | Endpoint | Mô Tả |
 |--------|----------|-------|
-| GET | `/api/ai/recommendations/` | Đề xuất sách cho user |
-| POST | `/api/ai/chat/` | Chat với AI tìm sách |
-| GET | `/api/ai/similar/{book_id}/` | Sách tương tự |
+| POST | `/api/deposit/` | 💰 Nạp tiền |
+| POST | `/api/ebooks/{id}/purchase/` | 🛒 Mua ebook |
+| GET | `/api/my-ebooks/` | 📚 Ebook đã mua |
+| GET | `/api/transactions/` | 📋 Lịch sử giao dịch |
+
+### AI RAG
+
+| Method | Endpoint | Mô Tả |
+|--------|----------|-------|
+| POST | `/api/ai/chat/` | 🤖 Chat với AI (RAG) |
+| GET | `/api/ai/search/?q=keyword` | 🔍 Semantic search |
 
 ---
 
 ## Hướng Dẫn Cài Đặt
 
-### 1. Clone và Setup Environment
+### 1. Cài đặt PostgreSQL + pgvector
 
 ```bash
-# Clone repository
-git clone <repository-url>
-cd bookstore
+# Ubuntu/Debian
+sudo apt install postgresql-14-pgvector
 
-# Tạo virtual environment
+# MacOS
+brew install pgvector
+
+# Windows: Dùng Docker
+docker run -d --name postgres-vector \
+  -e POSTGRES_PASSWORD=postgres \
+  -p 5432:5432 \
+  ankane/pgvector
+```
+
+### 2. Setup Django Project
+
+```bash
+# Clone
+git clone <repo-url>
+cd ebook_store
+
+# Virtual environment
 python -m venv venv
+venv\Scripts\activate  # Windows
 
-# Kích hoạt (Windows)
-venv\Scripts\activate
-
-# Kích hoạt (Linux/Mac)
-source venv/bin/activate
-
-# Cài đặt dependencies
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 2. File requirements.txt
+### 3. requirements.txt
 
 ```txt
 Django==4.2.7
 djangorestframework==3.14.0
-django-cors-headers==4.3.0
 Pillow==10.1.0
 psycopg2-binary==2.9.9
 python-dotenv==1.0.0
 openai==0.28.0
-celery==5.3.4
-redis==5.0.1
-django-redis==5.4.0
-gunicorn==21.2.0
-whitenoise==6.6.0
+pgvector==0.2.4
 ```
 
-### 3. Cấu hình .env
+### 4. .env
 
 ```env
-# Django
-SECRET_KEY=your-secret-key-here
+SECRET_KEY=your-secret-key
 DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
 
-# Database
-DATABASE_URL=postgres://user:password@localhost:5432/bookstore
+# PostgreSQL with pgvector
+DATABASE_URL=postgres://user:pass@localhost:5432/ebook_store
 
-# Redis (for caching & Celery)
-REDIS_URL=redis://localhost:6379/0
-
-# OpenAI API
-OPENAI_API_KEY=sk-your-openai-api-key
-
-# Email (optional)
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USE_TLS=True
-EMAIL_HOST_USER=your-email@gmail.com
-EMAIL_HOST_PASSWORD=your-app-password
+# OpenAI
+OPENAI_API_KEY=sk-your-openai-key
 ```
 
-### 4. Database Migration
+### 5. settings.py - Cấu hình Database
+
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'ebook_store',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+```
+
+### 6. Migration
 
 ```bash
-# Tạo migrations
-python manage.py makemigrations accounts books categories cart orders ai_recommendations
+# Tạo database
+createdb ebook_store
 
-# Apply migrations
+# Enable pgvector extension
+psql ebook_store -c "CREATE EXTENSION vector;"
+
+# Django migrate
+python manage.py makemigrations
 python manage.py migrate
-
-# Tạo superuser
 python manage.py createsuperuser
-
-# Load sample data (nếu có)
-python manage.py loaddata fixtures/sample_data.json
 ```
 
-### 5. Chạy Development Server
+### 7. Tạo Embedding cho Ebook có sẵn
 
 ```bash
-# Chạy Django server
+python manage.py shell
+```
+
+```python
+from apps.ai_rag.services import RAGService
+rag = RAGService()
+rag.update_all_embeddings()
+```
+
+### 8. Chạy Server
+
+```bash
 python manage.py runserver
-
-# Chạy Celery worker (terminal khác)
-celery -A bookstore worker -l info
 ```
 
 ---
 
-## Tích Hợp AI
+## Ví Dụ Sử Dụng AI RAG
 
-### Các Provider AI Có Thể Sử Dụng
+### Request
 
-1. **OpenAI (ChatGPT)**
-   - Ưu điểm: Mạnh mẽ, hiểu ngữ cảnh tốt
-   - Nhược điểm: Tốn phí
-
-2. **Google AI (Gemini)**
-   - Ưu điểm: Multimodal, giá tốt
-   - Nhược điểm: Cần Google Cloud setup
-
-3. **Hugging Face** (Open Source)
-   - Ưu điểm: Miễn phí, tự host được
-   - Nhược điểm: Cần GPU để chạy tốt
-
-### Luồng Hoạt Động AI Recommendation
-
+```bash
+curl -X POST http://localhost:8000/api/ai/chat/ \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Tôi muốn tìm sách về lập trình Python cho người mới bắt đầu"}'
 ```
-┌─────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   User      │────▶│  Django View    │────▶│  AI Service     │
-│  Request    │     │                 │     │                 │
-└─────────────┘     └─────────────────┘     └────────┬────────┘
-                                                      │
-                           ┌──────────────────────────┘
-                           ▼
-                    ┌─────────────────┐
-                    │  OpenAI API     │
-                    │  (hoặc AI khác) │
-                    └────────┬────────┘
-                             │
-                             ▼
-                    ┌─────────────────┐     ┌─────────────────┐
-                    │  AI Response    │────▶│  Match với DB   │
-                    │  (JSON)         │     │  Books          │
-                    └─────────────────┘     └────────┬────────┘
-                                                      │
-                           ┌──────────────────────────┘
-                           ▼
-                    ┌─────────────────┐
-                    │  Return to User │
-                    │  (Recommended   │
-                    │   Books)        │
-                    └─────────────────┘
+
+### Response
+
+```json
+{
+  "response": "Dựa trên yêu cầu của bạn, tôi đề xuất các cuốn sách sau:\n\n1. **Python Crash Course** - Tác giả Eric Matthes\n   - Giá: 150 Coins\n   - Đây là cuốn sách rất phù hợp cho người mới bắt đầu...\n\n2. **Automate the Boring Stuff with Python**...",
+  "relevant_ebooks": [
+    {
+      "id": 12,
+      "title": "Python Crash Course",
+      "author": "Eric Matthes",
+      "price": 150,
+      "cover": "/media/covers/python-crash-course.jpg"
+    },
+    {
+      "id": 15,
+      "title": "Automate the Boring Stuff with Python",
+      "author": "Al Sweigart",
+      "price": 120,
+      "cover": "/media/covers/automate-python.jpg"
+    }
+  ]
+}
 ```
 
 ---
 
-## Timeline Phát Triển Dự Kiến
+## Tổng Kết
 
-| Tuần | Công Việc |
-|------|-----------|
-| 1 | Setup project, models, database |
-| 2 | Authentication (đăng nhập/đăng ký) |
-| 3 | Books & Categories CRUD |
-| 4 | Shopping Cart |
-| 5 | Orders & Checkout |
-| 6 | AI Recommendations Integration |
-| 7 | Frontend UI/UX |
-| 8 | Testing & Deployment |
+### 4 Bảng Database
 
----
+| Bảng | Mô Tả |
+|------|-------|
+| **User** | Người dùng + balance (Coins) |
+| **Author** | Tác giả |
+| **Ebook** | Sách + file_url + **embedding** (vector) |
+| **Transaction** | Nạp tiền / Mua sách |
 
-## Tài Liệu Tham Khảo
+### RAG Flow
 
-- [Django Documentation](https://docs.djangoproject.com/)
-- [Django REST Framework](https://www.django-rest-framework.org/)
-- [OpenAI API Documentation](https://platform.openai.com/docs/)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+```
+User hỏi → Embed query → pgvector search → Top K ebooks → LLM + context → Response
+```
+
+### Ưu điểm RAG với pgvector
+
+✅ Tìm kiếm semantic (hiểu ngữ nghĩa, không chỉ keyword)  
+✅ AI trả lời dựa trên dữ liệu thực trong database  
+✅ Không hallucinate (bịa sách không có)  
+✅ Tìm kiếm nhanh với HNSW index  
+✅ Dễ scale với PostgreSQL  
 
 ---
 
 *Tài liệu được tạo ngày: 19/01/2026*
-*Phiên bản: 1.0*
+*Phiên bản: 4.0 - RAG + pgvector*

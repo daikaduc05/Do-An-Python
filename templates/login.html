@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Đăng nhập - Ebook Store{% endblock %}
+
+{% block content %}
+<div class="min-h-[calc(100vh-10rem)] flex items-center justify-center py-10">
+    <div class="glass w-full max-w-md p-8 rounded-3xl border border-white/5 shadow-2xl relative overflow-hidden">
+        <!-- Background Decor -->
+        <div class="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500 rounded-full blur-[80px] opacity-20"></div>
+        <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-pink-500 rounded-full blur-[80px] opacity-20"></div>
+
+        <div class="relative z-10">
+            <h2 class="text-3xl font-bold text-center mb-2">Chào mừng trở lại! 👋</h2>
+            <p class="text-slate-400 text-center mb-8">Đăng nhập để truy cập kho sách của bạn</p>
+
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl text-sm mb-4">
+                    {{ form.non_field_errors.0 }}
+                </div>
+                {% endif %}
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Email</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                    <p class="text-red-400 text-xs mt-1">{{ form.username.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Mật khẩu</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                    <p class="text-red-400 text-xs mt-1">{{ form.password.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-indigo-500/30 mt-4">
+                    Đăng nhập
+                </button>
+            </form>
+
+            <div class="mt-6 text-center text-sm text-slate-400">
+                Chưa có tài khoản?
+                <a href="{% url 'register' %}"
+                    class="text-indigo-400 hover:text-white font-medium transition-colors">Đăng ký ngay</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

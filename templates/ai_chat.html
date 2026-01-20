@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Tư vấn sách - Ebook Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chat-container::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+    }
+
+    .message-enter {
+        animation: slideIn 0.3s ease-out forwards;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .typing-dot {
+        animation: typing 1.4s infinite ease-in-out both;
+    }
+
+    .typing-dot:nth-child(1) {
+        animation-delay: -0.32s;
+    }
+
+    .typing-dot:nth-child(2) {
+        animation-delay: -0.16s;
+    }
+
+    @keyframes typing {
+
+        0%,
+        80%,
+        100% {
+            transform: scale(0);
+        }
+
+        40% {
+            transform: scale(1);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="h-[calc(100vh-8rem)] flex flex-col md:flex-row gap-6 max-w-6xl mx-auto">
+    <!-- Chat Area -->
+    <div class="flex-1 flex flex-col glass rounded-3xl overflow-hidden shadow-2xl relative">
+        <div class="px-6 py-4 border-b border-white/5 bg-slate-900/40 backdrop-blur flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold shadow-lg">
+                    AI</div>
+                <div>
+                    <h2 class="font-bold text-white">Ebook Assistant</h2>
+                    <p class="text-xs text-indigo-400 font-medium">Gemini AI</p>
+                </div>
+            </div>
+            <button onclick="location.reload()" class="text-slate-400 hover:text-white"><svg class="w-5 h-5" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg></button>
+        </div>
+
+        <div id="chatHistory" class="flex-1 overflow-y-auto p-6 space-y-6 chat-container scroll-smooth">
+            <div class="flex gap-4 message-enter">
+                <div
+                    class="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex-shrink-0 flex items-center justify-center text-xs font-bold mt-1">
+                    AI</div>
+                <div
+                    class="bg-slate-800/80 backdrop-blur border border-white/5 p-4 rounded-2xl rounded-tl-none text-slate-200 shadow-md max-w-[80%]">
+                    <p>👋 Chào bạn! Tôi là trợ lý AI chuyên về sách. Bạn muốn tìm đọc gì hôm nay?</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 bg-slate-900/60 backdrop-blur border-t border-white/5">
+            <form id="chatForm" class="relative max-w-3xl mx-auto flex items-end gap-2">
+                <input type="text" id="userMessage"
+                    class="flex-1 bg-slate-900 border border-slate-700 text-white px-5 py-4 rounded-2xl focus:outline-none focus:border-indigo-500 transition-all"
+                    placeholder="Nhập tin nhắn..." autocomplete="off">
+                <button type="submit" id="sendBtn"
+                    class="h-[58px] w-[58px] bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl flex items-center justify-center shadow-lg"><svg
+                        class="w-6 h-6 transform rotate-45 -ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg></button>
+            </form>
+        </div>
+
+        <div id="typingIndicator" class="hidden absolute bottom-24 left-6 z-10">
+            <div
+                class="bg-slate-800/90 border border-white/5 px-4 py-3 rounded-2xl rounded-tl-none flex gap-1 shadow-lg">
+                <div class="w-2 h-2 bg-indigo-400 rounded-full typing-dot"></div>
+                <div class="w-2 h-2 bg-indigo-400 rounded-full typing-dot"></div>
+                <div class="w-2 h-2 bg-indigo-400 rounded-full typing-dot"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendations Sidebar -->
+    <div class="hidden lg:flex w-80 glass rounded-3xl p-6 flex-col border border-white/5">
+        <h3 class="font-bold text-white mb-4">📚 Sách đề xuất</h3>
+        <div id="recommendationsList"
+            class="flex-1 overflow-y-auto space-y-4 pr-2 chat-container text-sm text-slate-500 text-center py-10">
+            <p>Mục đề xuất sẽ hiện tại đây...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const chatForm = document.getElementById('chatForm');
+    const userMessageInput = document.getElementById('userMessage');
+    const chatHistory = document.getElementById('chatHistory');
+    const sendBtn = document.getElementById('sendBtn');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const recommendationsList = document.getElementById('recommendationsList');
+
+    function scrollToBottom() { chatHistory.scrollTop = chatHistory.scrollHeight; }
+
+    function appendUserMessage(msg) {
+        const div = document.createElement('div');
+        div.className = 'flex gap-4 flex-row-reverse message-enter';
+        div.innerHTML = `<div class="w-8 h-8 rounded-full bg-slate-700 flex-shrink-0"></div><div class="bg-gradient-to-br from-indigo-600 to-blue-600 p-4 rounded-2xl rounded-tr-none text-white shadow-lg max-w-[80%]"><p>${msg}</p></div>`;
+        chatHistory.appendChild(div);
+        scrollToBottom();
+    }
+
+    function appendAIMessage(msg) {
+        const formatted = msg.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+        const div = document.createElement('div');
+        div.className = 'flex gap-4 message-enter';
+        div.innerHTML = `<div class="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex-shrink-0 flex items-center justify-center text-xs font-bold mt-1">AI</div><div class="bg-slate-800/80 backdrop-blur border border-white/5 p-4 rounded-2xl rounded-tl-none text-slate-200 shadow-md max-w-[80%]">${formatted}</div>`;
+        chatHistory.appendChild(div);
+        scrollToBottom();
+    }
+
+    function updateRecommendations(books) {
+        if (!books || !books.length) return;
+        recommendationsList.innerHTML = books.map(b => `
+            <a href="/ebook/${b.id}/" class="block p-3 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 hover:border-indigo-500 transition-all group">
+                <div class="flex gap-3"><div class="w-10 h-14 bg-slate-700 rounded flex-shrink-0"></div><div class="flex-1 min-w-0"><h4 class="font-bold text-slate-200 truncate group-hover:text-indigo-400">${b.title}</h4><p class="text-xs text-slate-500 truncate">${b.author}</p><div class="text-xs font-bold text-yellow-500 mt-1">${b.price} 🪙</div></div></div>
+            </a>`).join('');
+    }
+
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const msg = userMessageInput.value.trim();
+        if (!msg) return;
+        userMessageInput.value = '';
+        appendUserMessage(msg);
+        sendBtn.disabled = true;
+        typingIndicator.classList.remove('hidden');
+        scrollToBottom();
+        try {
+            const res = await fetchWithCSRF('/api/ai/chat/', { method: 'POST', body: JSON.stringify({ message: msg }) });
+            const data = await res.json();
+            typingIndicator.classList.add('hidden');
+            appendAIMessage(data.response || "Lỗi phản hồi");
+            if (data.relevant_ebooks) updateRecommendations(data.relevant_ebooks);
+        } catch (err) {
+            typingIndicator.classList.add('hidden');
+            appendAIMessage("Lỗi kết nối.");
+        }
+        sendBtn.disabled = false;
+        userMessageInput.focus();
+    });
+</script>
+{% endblock %}

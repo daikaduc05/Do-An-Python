@@ -1,75 +1,49 @@
-# 📚 BookStore - Website Bán Sách Online
+# 📚 Ebook Store
 
-> **Dự án Django** - Website bán sách với tính năng đề xuất sách thông minh bằng AI
+> Website bán Ebook với tiền ảo (Coins) & AI đề xuất sách bằng **RAG + pgvector**
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
 ![Django](https://img.shields.io/badge/Django-4.2+-green.svg)
-![OpenAI](https://img.shields.io/badge/OpenAI-API-orange.svg)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-pgvector-336791.svg)
 
-## ✨ Tính Năng Chính
+## ✨ Tính Năng
 
-| Tính Năng | Mô Tả |
-|-----------|-------|
-| 🔐 **Authentication** | Đăng ký, đăng nhập, quản lý tài khoản |
-| 📂 **Categories** | Phân loại sách theo danh mục |
-| 📖 **Books** | Xem, tìm kiếm, lọc sách |
-| 🛒 **Shopping Cart** | Giỏ hàng với đầy đủ chức năng |
-| 🤖 **AI Recommendations** | Đề xuất sách thông minh bằng AI |
+- 🔐 Đăng ký / Đăng nhập
+- 💰 Nạp tiền (Coins) vào tài khoản
+- 📖 Mua & tải Ebook
+- 🤖 **AI đề xuất sách với RAG + pgvector**
+
+## 🗄️ Database (4 Bảng)
+
+| Bảng | Mô Tả |
+|------|-------|
+| **User** | Người dùng + balance (Coins) |
+| **Author** | Tác giả |
+| **Ebook** | Sách + file_url + **embedding** (vector 1536d) |
+| **Transaction** | Nạp tiền / Mua sách |
+
+## 🤖 RAG Flow
+
+```
+User hỏi → Embed query → pgvector search → Top K ebooks → LLM + context → Response
+```
 
 ## 🚀 Quick Start
 
 ```bash
-# 1. Clone project
-git clone <repo-url>
-cd bookstore
-
-# 2. Tạo virtual environment
+# Setup
 python -m venv venv
-venv\Scripts\activate  # Windows
-
-# 3. Cài đặt dependencies
+venv\Scripts\activate
 pip install -r requirements.txt
 
-# 4. Setup database
-python manage.py migrate
-python manage.py createsuperuser
+# Enable pgvector
+psql ebook_store -c "CREATE EXTENSION vector;"
 
-# 5. Chạy server
+# Migrate & Run
+python manage.py migrate
 python manage.py runserver
 ```
 
-## 📁 Cấu Trúc Dự Án
+## 📖 Tài Liệu Chi Tiết
 
-```
-bookstore/
-├── apps/
-│   ├── accounts/          # 🔐 User authentication
-│   ├── books/             # 📖 Book management
-│   ├── categories/        # 📂 Categories
-│   ├── cart/              # 🛒 Shopping cart
-│   ├── orders/            # 📦 Orders
-│   └── ai_recommendations/# 🤖 AI features
-├── templates/
-├── static/
-└── docs/
-```
-
-## 📖 Tài Liệu
-
-Xem chi tiết tại: [📄 PROJECT_DOCUMENTATION.md](./docs/PROJECT_DOCUMENTATION.md)
-
-## 🛠️ Tech Stack
-
-- **Backend**: Django 4.2, Django REST Framework
-- **Database**: PostgreSQL
-- **Cache**: Redis
-- **AI**: OpenAI API / Google AI
-- **Task Queue**: Celery
-
-## 👥 Team
-
-*Đồ án Python*
-
----
-
-⭐ **Star** repo này nếu bạn thấy hữu ích!
+[📄 PROJECT_DOCUMENTATION.md](./docs/PROJECT_DOCUMENTATION.md)
