@@ -17,6 +17,17 @@ class RegisterForm(UserCreationForm):
                 'class': STYLE_CLASS,
                 'placeholder': field.label
             })
+    
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        # Auto-generate username from email to ensure uniqueness
+        # Use the part before @ as base, add random suffix if needed
+        import uuid
+        email_prefix = user.email.split('@')[0]
+        user.username = f"{email_prefix}_{uuid.uuid4().hex[:8]}"
+        if commit:
+            user.save()
+        return user
 
 class LoginForm(AuthenticationForm):
     username = forms.EmailField(widget=forms.TextInput(attrs={
