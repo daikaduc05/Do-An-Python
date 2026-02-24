@@ -53,6 +53,30 @@
             transform: scale(1);
         }
     }
+
+    .history-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 16px 0;
+        opacity: 0.5;
+    }
+
+    .history-divider::before,
+    .history-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(to right, transparent, rgba(99, 102, 241, 0.3), transparent);
+    }
+
+    .history-divider span {
+        font-size: 11px;
+        color: #818cf8;
+        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
 </style>
 {% endblock %}
 
@@ -67,24 +91,38 @@
                     AI</div>
                 <div>
                     <h2 class="font-bold text-white">Ebook Assistant</h2>
-                    <p class="text-xs text-indigo-400 font-medium">Gemini AI</p>
+                    <p class="text-xs text-indigo-400 font-medium">Gemini AI · Có nhớ hội thoại</p>
                 </div>
             </div>
-            <button onclick="location.reload()" class="text-slate-400 hover:text-white"><svg class="w-5 h-5" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg></button>
+            <div class="flex items-center gap-2">
+                <!-- Nút "Cuộc trò chuyện mới" -->
+                <button onclick="clearChatHistory()" title="Cuộc trò chuyện mới"
+                    class="text-slate-400 hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-white/5">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </button>
+                <!-- Nút Reload -->
+                <button onclick="location.reload()" title="Tải lại"
+                    class="text-slate-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </button>
+            </div>
         </div>
 
         <div id="chatHistory" class="flex-1 overflow-y-auto p-6 space-y-6 chat-container scroll-smooth">
-            <div class="flex gap-4 message-enter">
-                <div
-                    class="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex-shrink-0 flex items-center justify-center text-xs font-bold mt-1">
-                    AI</div>
-                <div
-                    class="bg-slate-800/80 backdrop-blur border border-white/5 p-4 rounded-2xl rounded-tl-none text-slate-200 shadow-md max-w-[80%]">
-                    <p>👋 Chào bạn! Tôi là trợ lý AI chuyên về sách. Bạn muốn tìm đọc gì hôm nay?</p>
+            <!-- Loading indicator for history -->
+            <div id="historyLoading" class="flex items-center justify-center py-10">
+                <div class="flex items-center gap-3 text-slate-500">
+                    <svg class="animate-spin w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <span>Đang tải lịch sử chat...</span>
                 </div>
             </div>
         </div>
@@ -132,6 +170,7 @@
     const sendBtn = document.getElementById('sendBtn');
     const typingIndicator = document.getElementById('typingIndicator');
     const recommendationsList = document.getElementById('recommendationsList');
+    const historyLoading = document.getElementById('historyLoading');
 
     function scrollToBottom() { chatHistory.scrollTop = chatHistory.scrollHeight; }
 
@@ -152,6 +191,21 @@
         scrollToBottom();
     }
 
+    function appendWelcomeMessage() {
+        const div = document.createElement('div');
+        div.className = 'flex gap-4 message-enter';
+        div.innerHTML = `<div class="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex-shrink-0 flex items-center justify-center text-xs font-bold mt-1">AI</div><div class="bg-slate-800/80 backdrop-blur border border-white/5 p-4 rounded-2xl rounded-tl-none text-slate-200 shadow-md max-w-[80%]"><p>👋 Chào bạn! Tôi là trợ lý AI chuyên về sách. Tôi có thể nhớ cuộc hội thoại trước đó của bạn. Bạn muốn tìm đọc gì hôm nay?</p></div>`;
+        chatHistory.appendChild(div);
+        scrollToBottom();
+    }
+
+    function appendHistoryDivider() {
+        const div = document.createElement('div');
+        div.className = 'history-divider';
+        div.innerHTML = '<span>Lịch sử hội thoại</span>';
+        chatHistory.appendChild(div);
+    }
+
     function updateRecommendations(books) {
         if (!books || !books.length) return;
         recommendationsList.innerHTML = books.map(b => `
@@ -160,6 +214,61 @@
             </a>`).join('');
     }
 
+    // Tải lịch sử chat khi trang được load
+    async function loadChatHistory() {
+        try {
+            const res = await fetchWithCSRF('/api/ai/chat/history/', { method: 'GET' });
+            const data = await res.json();
+
+            // Xóa loading indicator
+            historyLoading.remove();
+
+            if (data.history && data.history.length > 0) {
+                // Có lịch sử → hiển thị
+                appendHistoryDivider();
+                data.history.forEach(msg => {
+                    if (msg.role === 'human') {
+                        appendUserMessage(msg.content);
+                    } else if (msg.role === 'ai') {
+                        appendAIMessage(msg.content);
+                    }
+                });
+
+                // Thêm divider kết thúc lịch sử
+                const endDiv = document.createElement('div');
+                endDiv.className = 'history-divider';
+                endDiv.innerHTML = '<span>Tiếp tục hội thoại</span>';
+                chatHistory.appendChild(endDiv);
+            } else {
+                // Không có lịch sử → welcome message
+                appendWelcomeMessage();
+            }
+            scrollToBottom();
+        } catch (err) {
+            // Lỗi hoặc chưa đăng nhập → welcome message
+            historyLoading.remove();
+            appendWelcomeMessage();
+            scrollToBottom();
+        }
+    }
+
+    // Xóa lịch sử chat (New Chat)
+    async function clearChatHistory() {
+        if (!confirm('Bạn có chắc muốn xóa toàn bộ lịch sử hội thoại?')) return;
+
+        try {
+            const res = await fetchWithCSRF('/api/ai/chat/history/', { method: 'DELETE' });
+            const data = await res.json();
+
+            // Xóa tất cả tin nhắn trên UI
+            chatHistory.innerHTML = '';
+            appendWelcomeMessage();
+        } catch (err) {
+            alert('Không thể xóa lịch sử chat. Vui lòng thử lại.');
+        }
+    }
+
+    // Gửi tin nhắn
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const msg = userMessageInput.value.trim();
@@ -182,5 +291,8 @@
         sendBtn.disabled = false;
         userMessageInput.focus();
     });
+
+    // Tải lịch sử khi trang load
+    document.addEventListener('DOMContentLoaded', loadChatHistory);
 </script>
 {% endblock %}

@@ -18,30 +18,37 @@ class Author(models.Model):
         return self.name
 
 
+class Category(models.Model):
+    """Thể loại sách"""
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'categories'
+        verbose_name = 'Thể loại'
+        verbose_name_plural = 'Thể loại'
+        ordering = ['name']
+    
+    def __str__(self):
+        return self.name
+
+
 class Ebook(models.Model):
     """Sách điện tử"""
-    CATEGORY_CHOICES = [
-        ('fiction', 'Tiểu thuyết'),
-        ('science', 'Khoa học'),
-        ('business', 'Kinh doanh'),
-        ('self_help', 'Phát triển bản thân'),
-        ('technology', 'Công nghệ'),
-        ('history', 'Lịch sử'),
-        ('children', 'Thiếu nhi'),
-        ('other', 'Khác'),
-    ]
     
     title = models.CharField(max_length=500)
     description = models.TextField()
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='ebooks')
-    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    category = models.CharField(max_length=100, blank=True, default='')
     price = models.PositiveIntegerField(help_text="Giá bằng Coins")
     # file_url = models.FileField(upload_to='ebooks/', null=True, blank=True)
     file_url = models.FileField(upload_to='ebooks/')
     cover_image = models.ImageField(upload_to='covers/')
     
-    # Vector embedding cho RAG (Google Gemini text-embedding-004: 768 dimensions)
-    embedding = VectorField(dimensions=768, null=True, blank=True)
+    # Vector embedding cho RAG (Google Gemini gemini-embedding-001: 3072 dimensions)
+    embedding = VectorField(dimensions=3072, null=True, blank=True)
     
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -54,6 +61,10 @@ class Ebook(models.Model):
     
     def __str__(self):
         return self.title
+    
+    def get_category_display(self):
+        """Trả về tên thể loại"""
+        return self.category if self.category else 'Chưa phân loại'
     
     def get_text_for_embedding(self):
         """Text để tạo embedding"""

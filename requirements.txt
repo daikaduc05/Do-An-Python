@@ -7,3 +7,8 @@ google-generativeai
 pgvector
 django-cors-headers
 dj-database-url
+langchain
+langchain-google-genai
+langchain-community
+langchain-core
+psycopg
