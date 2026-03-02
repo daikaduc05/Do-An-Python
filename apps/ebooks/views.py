@@ -1,14 +1,14 @@
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
-from .models import Ebook
 from rest_framework.response import Response
+from .models import Ebook
 
 
 class EbookListView(generics.ListAPIView):
     """List all ebooks"""
     queryset = Ebook.objects.filter(is_active=True)
     permission_classes = [AllowAny]
-    
+
     def list(self, request):
         ebooks = self.get_queryset()
         data = [{
@@ -26,9 +26,16 @@ class EbookDetailView(generics.RetrieveAPIView):
     """Get ebook detail"""
     queryset = Ebook.objects.filter(is_active=True)
     permission_classes = [AllowAny]
-    
+
     def retrieve(self, request, *args, **kwargs):
         ebook = self.get_object()
+        file_url = None
+        if getattr(ebook, "file_url", None):
+            try:
+                file_url = ebook.file_url.url
+            except Exception:
+                file_url = ebook.file_url     
+
         data = {
             'id': ebook.id,
             'title': ebook.title,
@@ -41,5 +48,8 @@ class EbookDetailView(generics.RetrieveAPIView):
             'category': ebook.get_category_display(),
             'price': ebook.price,
             'cover': ebook.cover_image.url if ebook.cover_image else None,
+
+            'file_url': file_url,
+            'file_mime': getattr(ebook, "file_mime", None),
         }
         return Response(data)

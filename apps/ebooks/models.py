@@ -44,7 +44,8 @@ class Ebook(models.Model):
     category = models.CharField(max_length=100, blank=True, default='')
     price = models.PositiveIntegerField(help_text="Giá bằng Coins")
     # file_url = models.FileField(upload_to='ebooks/', null=True, blank=True)
-    file_url = models.FileField(upload_to='ebooks/')
+    file_url = models.URLField(blank=True, null=True)
+    file_mime = models.CharField(max_length=100, blank=True, null=True)
     cover_image = models.ImageField(upload_to='covers/')
     
     # Vector embedding cho RAG (Google Gemini gemini-embedding-001: 3072 dimensions)

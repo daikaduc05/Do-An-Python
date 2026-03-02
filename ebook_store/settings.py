@@ -153,3 +153,22 @@ CORS_ALLOW_ALL_ORIGINS = True  # For development
 
 # Google Gemini API
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
+
+import os
+from urllib.parse import urlparse
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+def infer_supabase_url_from_database_url(db_url: str) -> str | None:
+    if not db_url:
+        return None
+    host = urlparse(db_url).hostname or ""
+    # host: db.<project-ref>.supabase.co
+    if host.startswith("db.") and host.endswith(".supabase.co"):
+        project_ref = host[len("db."): -len(".supabase.co")]
+        return f"https://{project_ref}.supabase.co"
+    return None
+
+SUPABASE_URL = infer_supabase_url_from_database_url(DATABASE_URL)
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_STORAGE_BUCKET = os.getenv("SUPABASE_STORAGE_BUCKET", "ebooks")
