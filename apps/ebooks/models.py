@@ -46,7 +46,8 @@ class Ebook(models.Model):
     # file_url = models.FileField(upload_to='ebooks/', null=True, blank=True)
     file_url = models.URLField(blank=True, null=True)
     file_mime = models.CharField(max_length=100, blank=True, null=True)
-    cover_image = models.ImageField(upload_to='covers/')
+    cover_url = models.URLField(blank=True, null=True)
+    cover_mime = models.CharField(max_length=100, blank=True, null=True)
     
     # Vector embedding cho RAG (Google Gemini gemini-embedding-001: 3072 dimensions)
     embedding = VectorField(dimensions=3072, null=True, blank=True)

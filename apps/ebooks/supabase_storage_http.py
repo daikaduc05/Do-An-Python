@@ -28,7 +28,18 @@ def build_public_url(bucket: str, path: str) -> str:
     return f"{supabase_url}/storage/v1/object/public/{bucket}/{path}"
 
 
-def upload_to_supabase(file_obj, *, ebook_id: int, original_name: str) -> dict:
+def upload_to_supabase(
+    file_obj,
+    *,
+    original_name: str,
+    folder: str = "ebooks",
+    ebook_id: int | None = None,
+    entity_id: int | None = None,
+) -> dict:
+    _id = ebook_id if ebook_id is not None else entity_id
+    if _id is None:
+        raise TypeError("upload_to_supabase cần ebook_id hoặc entity_id")
+
     bucket = getattr(settings, "SUPABASE_STORAGE_BUCKET", "ebooks")
     key = getattr(settings, "SUPABASE_SERVICE_ROLE_KEY", None)
     if not key:
@@ -36,7 +47,7 @@ def upload_to_supabase(file_obj, *, ebook_id: int, original_name: str) -> dict:
 
     ext = (original_name.split(".")[-1] if "." in original_name else "bin").lower()
     safe_name = f"{uuid.uuid4().hex}.{ext}"
-    path = f"ebooks/{ebook_id}/{safe_name}"
+    path = f"{folder}/{_id}/{safe_name}"
 
     mime, _ = mimetypes.guess_type(original_name)
     mime = mime or "application/octet-stream"
@@ -50,7 +61,6 @@ def upload_to_supabase(file_obj, *, ebook_id: int, original_name: str) -> dict:
     headers = {
         "Authorization": f"Bearer {key}",
         "Content-Type": mime,
-        # upsert true để ghi đè nếu trùng
         "x-upsert": "true",
     }
 
@@ -58,8 +68,4 @@ def upload_to_supabase(file_obj, *, ebook_id: int, original_name: str) -> dict:
     if r.status_code not in (200, 201):
         raise RuntimeError(f"Upload failed: {r.status_code} {r.text}")
 
-    return {
-        "path": path,
-        "public_url": build_public_url(bucket, path),
-        "mime": mime,
-    }
+    return {"path": path, "public_url": build_public_url(bucket, path), "mime": mime}

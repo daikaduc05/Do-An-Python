@@ -181,7 +181,8 @@
 
     <div class="right-panel">
         <div class="right-wrap ebook-details">
-            <h1 id="ebookTitle" class="loading-skeleton" style="height: 2.8rem; width: 85%;"></h1>
+            <h1 id="ebookTitle"></h1>
+            <div id="titleSkeleton" class="loading-skeleton" style="height: 2.8rem; width: 85%; margin-bottom: 0.75rem;"></div>
 
             <div class="meta-info" id="metaInfo">
                 <div class="loading-skeleton" style="height: 1.3rem; width: 180px;"></div>
@@ -218,7 +219,7 @@
 
             const titleEl = document.getElementById('ebookTitle');
             titleEl.textContent = ebook.title;
-            titleEl.classList.remove('loading-skeleton');
+            document.getElementById('titleSkeleton').style.display = 'none';       
 
             document.getElementById('metaInfo').innerHTML = `
                 <div class="meta-item"><span>👤</span><span>${ebook.author?.name || ''}</span></div>

@@ -5,51 +5,42 @@ from .models import Ebook
 
 
 class EbookListView(generics.ListAPIView):
-    """List all ebooks"""
     queryset = Ebook.objects.filter(is_active=True)
     permission_classes = [AllowAny]
 
     def list(self, request):
         ebooks = self.get_queryset()
         data = [{
-            'id': e.id,
-            'title': e.title,
-            'author': e.author.name,
-            'category': e.get_category_display(),
-            'price': e.price,
-            'cover': e.cover_image.url if e.cover_image else None,
+            "id": e.id,
+            "title": e.title,
+            "author": e.author.name,
+            "category": e.get_category_display(),
+            "price": e.price,
+            "cover": getattr(e, "cover_url", None),  
         } for e in ebooks]
-        return Response({'ebooks': data})
+        return Response({"ebooks": data})
 
 
 class EbookDetailView(generics.RetrieveAPIView):
-    """Get ebook detail"""
     queryset = Ebook.objects.filter(is_active=True)
     permission_classes = [AllowAny]
 
     def retrieve(self, request, *args, **kwargs):
         ebook = self.get_object()
-        file_url = None
-        if getattr(ebook, "file_url", None):
-            try:
-                file_url = ebook.file_url.url
-            except Exception:
-                file_url = ebook.file_url     
-
         data = {
-            'id': ebook.id,
-            'title': ebook.title,
-            'description': ebook.description,
-            'author': {
-                'id': ebook.author.id,
-                'name': ebook.author.name,
-                'bio': ebook.author.bio,
+            "id": ebook.id,
+            "title": ebook.title,
+            "description": ebook.description,
+            "author": {
+                "id": ebook.author.id,
+                "name": ebook.author.name,
+                "bio": ebook.author.bio,
             },
-            'category': ebook.get_category_display(),
-            'price': ebook.price,
-            'cover': ebook.cover_image.url if ebook.cover_image else None,
+            "category": ebook.get_category_display(),
+            "price": ebook.price,
+            "cover": getattr(ebook, "cover_url", None), 
 
-            'file_url': file_url,
-            'file_mime': getattr(ebook, "file_mime", None),
+            "file_url": getattr(ebook, "file_url", None),
+            "file_mime": getattr(ebook, "file_mime", None),
         }
         return Response(data)

@@ -135,18 +135,32 @@
         container.innerHTML = ebooks.map(ebook => `
             <a href="/ebook/${ebook.id}/" class="group glass-card rounded-2xl overflow-hidden flex flex-col h-full hover:shadow-2xl hover:shadow-indigo-500/20">
                 <!-- Cover -->
-                <div class="aspect-[2/3] w-full bg-gradient-to-br ${getGradient(ebook.id)} p-6 flex items-center justify-center relative overflow-hidden">
-                    <div class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
-                    <span class="text-9xl drop-shadow-2xl opacity-90 transform group-hover:scale-110 transition-transform duration-500">📖</span>
-                    
-                    <!-- ID Badge for Debug -->
-                    <!-- <div class="absolute top-2 left-2 text-xs text-white/50">#${ebook.id}</div> -->
-                    
-                    <!-- Price Tag -->
-                    <div class="absolute top-4 right-4 bg-black/40 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-xs font-bold text-yellow-400 flex items-center gap-1 shadow-lg">
-                        <span>${ebook.price}</span>
-                        <span>🪙</span>
+                <div class="aspect-[2/3] w-full bg-gradient-to-br ${getGradient(ebook.id)} relative overflow-hidden">
+                ${ebook.cover ? `
+                    <img
+                    src="${ebook.cover}"
+                    alt="${ebook.title}"
+                    class="w-full h-full object-cover"
+                    loading="lazy"
+                    referrerpolicy="no-referrer"
+                    onerror="this.style.display='none'; this.parentElement.querySelector('.fallback').classList.remove('hidden');"
+                    />
+                    <div class="fallback hidden absolute inset-0 p-6 flex items-center justify-center">
+                    <span class="text-9xl drop-shadow-2xl opacity-90">📖</span>
                     </div>
+                ` : `
+                    <div class="absolute inset-0 p-6 flex items-center justify-center">
+                    <span class="text-9xl drop-shadow-2xl opacity-90">📖</span>
+                    </div>
+                `}
+
+                <!-- overlay -->
+                <div class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
+
+                <!-- Price Tag -->
+                <div class="absolute top-4 right-4 bg-black/40 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-xs font-bold text-yellow-400 flex items-center gap-1 shadow-lg">
+                    <span>${ebook.price}</span><span>🪙</span>
+                </div>
                 </div>
 
                 <!-- Content -->
