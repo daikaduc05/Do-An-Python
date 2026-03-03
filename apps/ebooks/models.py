@@ -41,17 +41,22 @@ class Ebook(models.Model):
     title = models.CharField(max_length=500)
     description = models.TextField()
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='ebooks')
-    category = models.CharField(max_length=100, blank=True, default='')
     price = models.PositiveIntegerField(help_text="Giá bằng Coins")
     # file_url = models.FileField(upload_to='ebooks/', null=True, blank=True)
     file_url = models.URLField(blank=True, null=True)
     file_mime = models.CharField(max_length=100, blank=True, null=True)
     cover_url = models.URLField(blank=True, null=True)
     cover_mime = models.CharField(max_length=100, blank=True, null=True)
-    
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ebooks",
+    )
     # Vector embedding cho RAG (Google Gemini gemini-embedding-001: 3072 dimensions)
     embedding = VectorField(dimensions=3072, null=True, blank=True)
-    
+
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -63,11 +68,8 @@ class Ebook(models.Model):
     
     def __str__(self):
         return self.title
-    
     def get_category_display(self):
-        """Trả về tên thể loại"""
-        return self.category if self.category else 'Chưa phân loại'
-    
+        return self.category.name if self.category else "Chưa phân loại"
     def get_text_for_embedding(self):
         """Text để tạo embedding"""
         return f"{self.title}. {self.author.name}. {self.get_category_display()}. {self.description}"

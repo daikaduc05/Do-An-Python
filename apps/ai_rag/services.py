@@ -153,7 +153,8 @@ Yêu cầu:
                         'title': e.title,
                         'author': e.author.name,
                         'price': e.price,
-                        'cover': e.cover_image.url if e.cover_image else None
+                        'cover': getattr(e, "cover_url", None),   
+                        'cover_mime': getattr(e, "cover_mime", None),
                     }
                     for e in relevant_ebooks
                 ]

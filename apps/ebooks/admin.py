@@ -3,6 +3,7 @@ from django.contrib import admin
 from .models import Author, Category, Ebook
 from .supabase_storage_http import upload_to_supabase  # file bạn tạo theo hướng HTTP
 from django.contrib import messages
+from django.utils.html import format_html
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
@@ -25,14 +26,23 @@ class EbookAdminForm(forms.ModelForm):
         model = Ebook
         fields = "__all__"
 
-
 @admin.register(Ebook)
 class EbookAdmin(admin.ModelAdmin):
     form = EbookAdminForm
-    list_display = ['title', 'author', 'category', 'price', 'is_active', 'created_at']
+    list_display = ['cover_preview', 'title', 'author', 'category', 'price', 'is_active', 'created_at']
     search_fields = ['title', 'author__name']
     list_filter = ['category', 'is_active', 'created_at']
-    readonly_fields = ['created_at']
+    readonly_fields = ['created_at', 'file_url', 'file_mime', 'cover_url', 'cover_mime']
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related("author", "category")
+
+    def cover_preview(self, obj):
+        if getattr(obj, "cover_url", None):
+            return format_html('<img src="{}" style="height:60px;border-radius:6px;" />', obj.cover_url)
+        return "-"
+    cover_preview.short_description = "Cover"
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
