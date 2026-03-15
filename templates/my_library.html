@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Thư viện của tôi - Ebook Store{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/my-library.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="library-page">
+  <div class="library-hero glass-card rounded-3xl p-6 md:p-8 mb-8">
+    <div class="library-hero__content">
+      <div class="library-badge">📚 Khu vực cá nhân</div>
+      <h1 class="library-title">Thư viện của tôi</h1>
+      <p class="library-subtitle">
+        Xem lại toàn bộ ebook bạn đã mua, mở sách nhanh và quay lại trang chi tiết bất cứ lúc nào.
+      </p>
+    </div>
+
+    <div class="library-stats">
+      <div class="library-stat-card">
+        <span class="library-stat-label">Tổng số sách</span>
+        <strong id="libraryCount" class="library-stat-value">0</strong>
+      </div>
+      <div class="library-stat-card">
+        <span class="library-stat-label">Trạng thái</span>
+        <strong id="libraryStatus" class="library-stat-value text-indigo-300">Đang tải...</strong>
+      </div>
+    </div>
+  </div>
+
+  <div id="libraryFeedback" class="library-feedback hidden"></div>
+
+  <div id="libraryLoading" class="library-loading glass-card rounded-3xl p-10 text-center">
+    <div class="library-spinner"></div>
+    <p class="text-slate-300 font-medium mt-4">Đang tải thư viện của bạn...</p>
+  </div>
+
+  <div id="libraryEmpty" class="library-empty glass-card rounded-3xl p-10 text-center hidden">
+    <div class="library-empty__icon">📖</div>
+    <h2 class="library-empty__title">Bạn chưa mua ebook nào</h2>
+    <p class="library-empty__desc">
+      Hãy khám phá kho sách và mua ebook đầu tiên để xây dựng thư viện cá nhân của bạn.
+    </p>
+    <a href="/" class="library-primary-btn">
+      Khám phá sách ngay
+    </a>
+  </div>
+
+  <div id="libraryGrid" class="library-grid hidden"></div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const libraryLoadingEl = document.getElementById('libraryLoading');
+  const libraryEmptyEl = document.getElementById('libraryEmpty');
+  const libraryGridEl = document.getElementById('libraryGrid');
+  const libraryCountEl = document.getElementById('libraryCount');
+  const libraryStatusEl = document.getElementById('libraryStatus');
+  const libraryFeedbackEl = document.getElementById('libraryFeedback');
+
+  function formatVietnameseDate(isoString) {
+    if (!isoString) return 'Không rõ thời gian';
+    const date = new Date(isoString);
+    return new Intl.DateTimeFormat('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(date);
+  }
+
+  function getCoverFallback(title = '') {
+    const firstChar = (title || 'E').trim().charAt(0).toUpperCase() || 'E';
+    return `
+            <div class="library-cover-fallback">
+                <span class="library-cover-fallback__emoji">📘</span>
+                <span class="library-cover-fallback__letter">${firstChar}</span>
+            </div>
+        `;
+  }
+
+  function getFileActionLabel(fileMime) {
+    if (!fileMime) return 'Mở sách';
+    if (fileMime.includes('pdf')) return 'Đọc PDF';
+    if (fileMime.includes('epub')) return 'Mở EPUB';
+    return 'Mở sách';
+  }
+
+  function showFeedback(message, type = 'error') {
+    libraryFeedbackEl.classList.remove('hidden', 'is-error', 'is-success');
+    libraryFeedbackEl.classList.add(type === 'success' ? 'is-success' : 'is-error');
+    libraryFeedbackEl.textContent = message;
+  }
+
+  function hideFeedback() {
+    libraryFeedbackEl.classList.add('hidden');
+    libraryFeedbackEl.textContent = '';
+  }
+
+  function renderLibraryItems(items) {
+    libraryGridEl.innerHTML = items.map(item => {
+      const ebook = item.ebook || {};
+      const detailUrl = `/ebook/${ebook.id}/`;
+      const openUrl = ebook.file_url || detailUrl;
+      const openLabel = ebook.file_url ? getFileActionLabel(ebook.file_mime || '') : 'Xem chi tiết';
+
+      return `
+                <article class="library-card glass-card rounded-3xl overflow-hidden">
+                    <div class="library-card__cover">
+                        ${ebook.cover ? `
+                            <img
+                                src="${ebook.cover}"
+                                alt="${ebook.title || 'Ebook'}"
+                                class="library-cover-image"
+                                loading="lazy"
+                                referrerpolicy="no-referrer"
+                                onerror="this.style.display='none'; this.parentElement.querySelector('.library-cover-fallback-wrap').classList.remove('hidden');"
+                            />
+                            <div class="library-cover-fallback-wrap hidden">
+                                ${getCoverFallback(ebook.title)}
+                            </div>
+                        ` : `
+                            <div class="library-cover-fallback-wrap">
+                                ${getCoverFallback(ebook.title)}
+                            </div>
+                        `}
+                        <div class="library-card__overlay"></div>
+                        <div class="library-pill">
+                            Đã mua
+                        </div>
+                    </div>
+
+                    <div class="library-card__body">
+                        <div class="library-meta">
+                            <span class="library-category">${ebook.category || 'Chưa phân loại'}</span>
+                            <span class="library-price">${item.purchased_price} 🪙</span>
+                        </div>
+
+                        <h3 class="library-book-title">${ebook.title || 'Không có tiêu đề'}</h3>
+                        <p class="library-book-author">${ebook.author || 'Chưa có tác giả'}</p>
+
+                        <div class="library-purchase-info">
+                            <span>Ngày mua</span>
+                            <strong>${formatVietnameseDate(item.purchased_at)}</strong>
+                        </div>
+
+                        <div class="library-card__actions">
+                            <a href="${detailUrl}" class="library-secondary-btn">
+                                Xem chi tiết
+                            </a>
+                            <a href="${openUrl}" class="library-primary-btn"
+                               ${ebook.file_url ? 'target="_blank" rel="noopener noreferrer"' : ''}>
+                                ${openLabel}
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            `;
+    }).join('');
+  }
+
+  async function loadMyLibrary() {
+    hideFeedback();
+    libraryLoadingEl.classList.remove('hidden');
+    libraryEmptyEl.classList.add('hidden');
+    libraryGridEl.classList.add('hidden');
+
+    try {
+      const response = await fetch('/api/transactions/library/', {
+        credentials: 'same-origin'
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        showFeedback('Bạn cần đăng nhập để xem thư viện của mình.');
+        libraryStatusEl.textContent = 'Cần đăng nhập';
+        return;
+      }
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        showFeedback(data.error || 'Không thể tải thư viện lúc này.');
+        libraryStatusEl.textContent = 'Có lỗi';
+        return;
+      }
+
+      const items = data.library || [];
+      libraryCountEl.textContent = items.length;
+      libraryStatusEl.textContent = items.length > 0 ? 'Sẵn sàng' : 'Trống';
+
+      if (items.length === 0) {
+        libraryEmptyEl.classList.remove('hidden');
+        return;
+      }
+
+      renderLibraryItems(items);
+      libraryGridEl.classList.remove('hidden');
+    } catch (error) {
+      console.error('Load library error:', error);
+      showFeedback('Đã xảy ra lỗi khi tải thư viện. Vui lòng thử lại.');
+      libraryStatusEl.textContent = 'Có lỗi';
+    } finally {
+      libraryLoadingEl.classList.add('hidden');
+    }
+  }
+
+  loadMyLibrary();
+</script>
+{% endblock %}

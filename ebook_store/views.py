@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.views import View
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 class HomeView(View):
@@ -18,3 +19,11 @@ class EbookDetailView(View):
     """Ebook detail page"""
     def get(self, request, ebook_id):
         return render(request, 'ebook_detail.html', {'ebook_id': ebook_id})
+
+
+class MyLibraryPageView(LoginRequiredMixin, View):
+    """My library page"""
+    login_url = 'login'
+
+    def get(self, request):
+        return render(request, 'my_library.html')

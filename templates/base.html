@@ -95,14 +95,25 @@
 
                 <!-- Nav -->
                 <nav class="hidden md:flex space-x-8">
-                    <a href="/" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Trang
-                        chủ</a>
+                    <a href="/" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">
+                        Trang chủ
+                    </a>
+                
                     <a href="/ai-chat/"
                         class="text-sm font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-1">
-                        <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>AI Tư vấn
+                        <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                        AI Tư vấn
                     </a>
-                    <a href="/admin/"
-                        class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Admin</a>
+                
+                    {% if user.is_authenticated %}
+                    <a href="/my-library/" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">
+                        Thư viện của tôi
+                    </a>
+                    {% endif %}
+                
+                    <a href="/admin/" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">
+                        Admin
+                    </a>
                 </nav>
 
                 <!-- Auth & Wallet -->
