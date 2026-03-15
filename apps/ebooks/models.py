@@ -1,6 +1,8 @@
 from django.db import models
 from pgvector.django import VectorField
-
+from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 
 class Author(models.Model):
     """Tác giả sách"""
@@ -73,3 +75,48 @@ class Ebook(models.Model):
     def get_text_for_embedding(self):
         """Text để tạo embedding"""
         return f"{self.title}. {self.author.name}. {self.get_category_display()}. {self.description}"
+
+class EbookReview(models.Model):
+    ebook = models.ForeignKey(
+        'Ebook',
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='ebook_reviews'
+    )
+    rating = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    content = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'ebook_reviews'
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(fields=['ebook', 'user'], name='unique_user_review_per_ebook')
+        ]
+
+    def __str__(self):
+        return f'{self.user.email} - {self.ebook.title} - {self.rating} sao'
+
+
+class EbookReviewImage(models.Model):
+    review = models.ForeignKey(
+        EbookReview,
+        on_delete=models.CASCADE,
+        related_name='images'
+    )
+    image = models.ImageField(upload_to='reviews/%Y/%m/%d/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'ebook_review_images'
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f'Ảnh review #{self.id} - {self.review_id}'

@@ -35,7 +35,9 @@ ALLOWED_HOSTS = ['*']
 
 
 # Application definition
-
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -153,7 +155,7 @@ CORS_ALLOW_ALL_ORIGINS = True  # For development
 
 # Google Gemini API
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
-
+STATIC_URL = '/static/'
 import os
 from urllib.parse import urlparse
 

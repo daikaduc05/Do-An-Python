@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib import admin
-from .models import Author, Category, Ebook
+from .models import Ebook, Author, Category, EbookReview, EbookReviewImage
 from .supabase_storage_http import upload_to_supabase  # file bạn tạo theo hướng HTTP
 from django.contrib import messages
 from django.utils.html import format_html
@@ -68,3 +68,22 @@ class EbookAdmin(admin.ModelAdmin):
                 messages.success(request, "✅ Upload ảnh bìa lên Supabase thành công.")
             except Exception as e:
                 messages.error(request, f"❌ Upload Supabase thất bại (ảnh bìa): {e}")
+
+class EbookReviewImageInline(admin.TabularInline):
+    model = EbookReviewImage
+    extra = 0
+
+
+@admin.register(EbookReview)
+class EbookReviewAdmin(admin.ModelAdmin):
+    list_display = ['ebook', 'user', 'rating', 'created_at', 'updated_at']
+    list_filter = ['rating', 'created_at']
+    search_fields = ['ebook__title', 'user__email', 'content']
+    autocomplete_fields = ['ebook', 'user']
+    inlines = [EbookReviewImageInline]
+
+
+@admin.register(EbookReviewImage)
+class EbookReviewImageAdmin(admin.ModelAdmin):
+    list_display = ['review', 'created_at']
+    autocomplete_fields = ['review']
