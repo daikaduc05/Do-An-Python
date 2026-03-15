@@ -111,7 +111,7 @@
                     <div
                         class="px-4 py-1.5 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center gap-2">
                         <span class="text-xl">🪙</span>
-                        <span class="font-bold text-yellow-400">{{ user.balance }}</span>
+                        <span id="walletBalance" class="font-bold text-yellow-400">{{ user.balance }}</span>
                     </div>
                     <div class="flex items-center gap-3 pl-2 border-l border-slate-700">
                         <div class="text-right hidden lg:block">
@@ -166,21 +166,39 @@
     <!-- CSRF Helper -->
     <script>
         function getCookie(name) {
-            let v = null;
-            if (document.cookie && document.cookie !== '') {
-                document.cookie.split(';').forEach(c => {
-                    const cookie = c.trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) v = decodeURIComponent(cookie.substring(name.length + 1));
+                let v = null;
+                if (document.cookie && document.cookie !== '') {
+                    document.cookie.split(';').forEach(c => {
+                        const cookie = c.trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            v = decodeURIComponent(cookie.substring(name.length + 1));
+                        }
+                    });
+                }
+                return v;
+            }
+
+            const csrftoken = getCookie('csrftoken');
+
+            async function fetchWithCSRF(url, options = {}) {
+                return fetch(url, {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken,
+                        ...(options.headers || {})
+                    }
                 });
             }
-            return v;
-        }
-        const csrftoken = getCookie('csrftoken');
-        async function fetchWithCSRF(url, options = {}) {
-            return fetch(url, { ...options, headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken, ...(options.headers || {}) } });
-        }
+
+            function updateWalletBalance(newBalance) {
+                const walletEl = document.getElementById('walletBalance');
+                if (!walletEl) return;
+                walletEl.textContent = newBalance;
+            }
     </script>
     {% block extra_js %}{% endblock %}
 </body>
 
 </html>
+

@@ -3,6 +3,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from .models import Ebook
+from apps.transactions.models import OwnedEbook
 
 
 class EbookListView(generics.ListAPIView):
@@ -44,6 +45,11 @@ class EbookDetailView(generics.RetrieveAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         ebook = self.get_object()
+
+        is_owned = False
+        if request.user.is_authenticated:
+            is_owned = OwnedEbook.objects.filter(user=request.user, ebook=ebook).exists()
+
         data = {
             "id": ebook.id,
             "title": ebook.title,
@@ -57,7 +63,9 @@ class EbookDetailView(generics.RetrieveAPIView):
             "category_slug": ebook.category.slug if ebook.category else None,
             "price": ebook.price,
             "cover": getattr(ebook, "cover_url", None),
-            "file_url": getattr(ebook, "file_url", None),
             "file_mime": getattr(ebook, "file_mime", None),
+            "is_owned": is_owned,
+            "preview_url": getattr(ebook, "file_url", None),
+            "file_url": getattr(ebook, "file_url", None) if is_owned else None,
         }
         return Response(data)

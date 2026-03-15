@@ -1,14 +1,13 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ ebook.title }} - Ebook Store{% endblock %}
-
+{% block title %}Chi tiết sách - Ebook Store{% endblock %}
 {% block main_class %}px-4 sm:px-6 lg:px-8 max-w-none{% endblock %}
 
 {% block extra_css %}
 <style>
     .ebook-detail-container {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: minmax(360px, 0.95fr) minmax(420px, 1.05fr);
         gap: 1.5rem;
         margin-top: 1rem;
         align-items: start;
@@ -16,12 +15,13 @@
 
     .left-panel,
     .right-panel {
-        background: rgba(30, 41, 59, 0.45);
+        background: rgba(15, 23, 42, 0.68);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 20px;
         overflow: hidden;
+        box-shadow: 0 20px 60px rgba(2, 6, 23, 0.22);
     }
 
     .panel-header {
@@ -29,103 +29,117 @@
         align-items: center;
         justify-content: space-between;
         gap: 1rem;
-        padding: 0.9rem 1rem;
+        padding: 1rem 1.1rem;
         border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
 
     .panel-title {
         font-weight: 700;
         color: #fff;
+        font-size: 1rem;
     }
 
     .panel-badge {
-        color: rgba(226, 232, 240, 0.7);
-        font-size: 0.95rem;
+        color: rgba(226, 232, 240, 0.9);
+        font-size: 0.85rem;
         white-space: nowrap;
-    }
-
-    .reader-wrap {
-        padding: 0.9rem;
-    }
-
-    .reader-frame {
-        width: 100%;
-        height: calc(100vh - 220px);
-        min-height: 720px;
-        border: 1px solid rgba(0, 0, 0, 0.08);
-        border-radius: 12px;
-        background: #fff;
-    }
-
-    .right-wrap {
-        padding: 1.25rem;
-    }
-
-    .ebook-details h1 {
-        font-size: 2.2rem;
-        margin-bottom: 0.75rem;
-        line-height: 1.2;
-        color: #fff;
-    }
-
-    .meta-info {
-        display: flex;
-        gap: 1.25rem;
-        margin-bottom: 1.25rem;
-        color: rgba(226, 232, 240, 0.75);
-        flex-wrap: wrap;
-    }
-
-    .meta-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .price-section {
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(236, 72, 153, 0.10));
-        padding: 1.25rem;
-        border-radius: 16px;
-        margin: 1.25rem 0;
+        padding: 0.45rem 0.8rem;
+        border-radius: 999px;
+        background: rgba(99, 102, 241, 0.16);
         border: 1px solid rgba(255, 255, 255, 0.06);
     }
 
-    .price-large {
-        font-size: 2.4rem;
-        font-weight: 800;
-        color: #fbbf24;
-        margin-bottom: 0.75rem;
+    .cover-wrap {
+        padding: 1.25rem;
     }
 
-    .purchase-actions {
+    .cover-card {
+        position: relative;
+        border-radius: 18px;
+        overflow: hidden;
+        background:
+            radial-gradient(circle at top left, rgba(99, 102, 241, 0.28), transparent 35%),
+            radial-gradient(circle at bottom right, rgba(236, 72, 153, 0.24), transparent 35%),
+            rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        min-height: 720px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .cover-image {
+        width: 100%;
+        height: 100%;
+        min-height: 720px;
+        object-fit: cover;
+        display: block;
+        background: #0f172a;
+    }
+
+    .cover-placeholder {
+        padding: 2rem;
+        text-align: center;
+        color: rgba(226, 232, 240, 0.82);
+        line-height: 1.8;
+    }
+
+    .cover-overlay {
+        position: absolute;
+        inset: auto 0 0 0;
+        padding: 1rem;
+        background: linear-gradient(to top, rgba(2, 6, 23, 0.88), rgba(2, 6, 23, 0.05));
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .access-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        width: fit-content;
+        padding: 0.45rem 0.8rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .access-chip.owned {
+        color: #86efac;
+        background: rgba(34, 197, 94, 0.14);
+    }
+
+    .access-chip.locked {
+        color: #fbbf24;
+        background: rgba(251, 191, 36, 0.14);
+    }
+
+    .cover-note {
+        color: rgba(226, 232, 240, 0.78);
+        font-size: 0.95rem;
+        line-height: 1.65;
+        max-width: 90%;
+    }
+
+    .cover-actions {
         display: flex;
         gap: 0.75rem;
         flex-wrap: wrap;
     }
 
-    .btn-large {
-        padding: 0.9rem 1.6rem;
-        font-size: 1.02rem;
+    .right-wrap {
+        padding: 1.4rem;
     }
 
-    .description-section {
-        margin: 1rem 0 0;
-    }
-
-    .description-section h2 {
-        margin-bottom: 0.6rem;
-        color: #a5b4fc;
-        font-weight: 700;
-    }
-
-    .description-text {
-        line-height: 1.8;
-        color: rgba(226, 232, 240, 0.75);
-        white-space: pre-wrap;
-    }
-
-    .loading-skeleton {
-        background: linear-gradient(90deg, rgba(30, 41, 59, 0.7) 25%, rgba(99, 102, 241, 0.12) 50%, rgba(30, 41, 59, 0.7) 75%);
+    .title-skeleton,
+    .line-skeleton,
+    .block-skeleton {
+        background: linear-gradient(90deg,
+                rgba(30, 41, 59, 0.7) 25%,
+                rgba(99, 102, 241, 0.16) 50%,
+                rgba(30, 41, 59, 0.7) 75%);
         background-size: 200% 100%;
         animation: loading 1.5s infinite;
         border-radius: 12px;
@@ -141,26 +155,296 @@
         }
     }
 
-    .reader-actions {
+    .ebook-title {
+        font-size: 2.4rem;
+        line-height: 1.15;
+        color: #fff;
+        margin: 0 0 0.8rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
+
+    .meta-info {
         display: flex;
         gap: 0.75rem;
-        margin-top: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .meta-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.65rem 0.9rem;
+        border-radius: 999px;
+        background: rgba(30, 41, 59, 0.72);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: rgba(226, 232, 240, 0.88);
+        font-size: 0.95rem;
+    }
+
+    .hero-price-card {
+        margin: 1.2rem 0 1rem;
+        padding: 1.2rem;
+        border-radius: 18px;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.16), rgba(236, 72, 153, 0.14));
+        border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .hero-price-label {
+        color: rgba(226, 232, 240, 0.72);
+        font-size: 0.92rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .hero-price {
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: #fbbf24;
+        line-height: 1;
+        margin-bottom: 0.9rem;
+    }
+
+    .purchase-actions {
+        display: flex;
+        gap: 0.75rem;
         flex-wrap: wrap;
     }
 
-    .reader-hint {
-        color: rgba(226, 232, 240, 0.75);
+    .btn-large {
+        padding: 0.95rem 1.35rem;
+        font-size: 1rem;
+        border-radius: 14px;
+    }
+
+    .ownership-note {
+        margin-top: 0.9rem;
+        color: rgba(226, 232, 240, 0.78);
         line-height: 1.6;
     }
 
-    @media (max-width: 1024px) {
+    .status-ok {
+        color: #86efac;
+        font-weight: 700;
+    }
+
+    .status-locked {
+        color: #fbbf24;
+        font-weight: 700;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.9rem;
+        margin: 1rem 0 1.15rem;
+    }
+
+    .info-card {
+        padding: 1rem;
+        border-radius: 16px;
+        background: rgba(30, 41, 59, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .info-label {
+        color: rgba(226, 232, 240, 0.64);
+        font-size: 0.86rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .info-value {
+        color: #fff;
+        font-weight: 700;
+        line-height: 1.6;
+    }
+
+    .description-section {
+        padding: 1.1rem 1rem;
+        border-radius: 16px;
+        background: rgba(15, 23, 42, 0.52);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .description-section h2 {
+        margin: 0 0 0.7rem;
+        color: #c4b5fd;
+        font-size: 1.05rem;
+        font-weight: 800;
+    }
+
+    .description-text {
+        line-height: 1.8;
+        color: rgba(226, 232, 240, 0.8);
+        white-space: pre-wrap;
+    }
+
+    .feature-list {
+        margin-top: 1rem;
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    .feature-item {
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-start;
+        padding: 0.9rem 1rem;
+        border-radius: 14px;
+        background: rgba(30, 41, 59, 0.45);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        color: rgba(226, 232, 240, 0.82);
+        line-height: 1.65;
+    }
+
+    .feature-icon {
+        font-size: 1.1rem;
+        line-height: 1;
+        margin-top: 0.1rem;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: rgba(2, 6, 23, 0.72);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .modal-overlay.hidden {
+        display: none;
+    }
+
+    .modal-card {
+        width: 100%;
+        max-width: 520px;
+        background: #0f172a;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+        overflow: hidden;
+    }
+
+    .modal-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .modal-head h3 {
+        margin: 0;
+        color: #fff;
+        font-size: 1.05rem;
+    }
+
+    .modal-close {
+        border: none;
+        background: transparent;
+        color: rgba(226, 232, 240, 0.75);
+        font-size: 1.1rem;
+        cursor: pointer;
+    }
+
+    .modal-body {
+        padding: 1.2rem;
+        color: rgba(226, 232, 240, 0.88);
+    }
+
+    .purchase-summary {
+        padding: 1rem;
+        border-radius: 16px;
+        background: rgba(30, 41, 59, 0.52);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .purchase-title {
+        color: #fff;
+        font-weight: 800;
+        font-size: 1.08rem;
+        margin-bottom: 0.45rem;
+    }
+
+    .purchase-price {
+        color: #fbbf24;
+        font-size: 2rem;
+        font-weight: 900;
+        margin-bottom: 0.65rem;
+    }
+
+    .purchase-help {
+        color: rgba(226, 232, 240, 0.75);
+        line-height: 1.7;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding: 0 1.2rem 1.2rem;
+    }
+
+    .app-toast {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        z-index: 10000;
+        min-width: 280px;
+        max-width: 420px;
+        padding: 0.9rem 1rem;
+        border-radius: 14px;
+        color: #fff;
+        background: #0f172a;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+    }
+
+    .app-toast.hidden {
+        display: none;
+    }
+
+    .app-toast.success {
+        border-color: rgba(34, 197, 94, 0.35);
+    }
+
+    .app-toast.error {
+        border-color: rgba(239, 68, 68, 0.35);
+    }
+
+    @media (max-width: 1100px) {
         .ebook-detail-container {
             grid-template-columns: 1fr;
         }
 
-        .reader-frame {
-            height: 70vh;
+        .cover-card,
+        .cover-image {
             min-height: 520px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .ebook-title {
+            font-size: 1.9rem;
+        }
+
+        .hero-price {
+            font-size: 2.2rem;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .purchase-actions {
+            flex-direction: column;
+        }
+
+        .purchase-actions .btn {
+            width: 100%;
         }
     }
 </style>
@@ -168,123 +452,353 @@
 
 {% block content %}
 <div id="ebookContent" class="ebook-detail-container fade-in">
-
     <div class="left-panel">
         <div class="panel-header">
-            <div class="panel-title">📖 Nội dung sách</div>
-            <div class="panel-badge" id="readerBadge"></div>
+            <div class="panel-title">Bìa sách</div>
+            <div class="panel-badge" id="readerBadge">Đang tải...</div>
         </div>
-        <div class="reader-wrap">
-            <div id="ebookReader" class="loading-skeleton" style="height: 720px;"></div>
+
+        <div class="cover-wrap">
+            <div class="cover-card" id="coverCard">
+                <div class="cover-placeholder">
+                    Đang tải ảnh bìa sách...
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="right-panel">
-        <div class="right-wrap ebook-details">
-            <h1 id="ebookTitle"></h1>
-            <div id="titleSkeleton" class="loading-skeleton" style="height: 2.8rem; width: 85%; margin-bottom: 0.75rem;"></div>
-
-            <div class="meta-info" id="metaInfo">
-                <div class="loading-skeleton" style="height: 1.3rem; width: 180px;"></div>
-                <div class="loading-skeleton" style="height: 1.3rem; width: 140px;"></div>
+        <div class="right-wrap">
+            <h1 id="ebookTitle" class="ebook-title"></h1>
+            <div id="titleSkeleton" class="title-skeleton" style="height: 3rem; width: 86%; margin-bottom: 0.9rem;">
             </div>
 
-            <div class="price-section">
-                <div class="price-large" id="ebookPrice">...</div>
+            <div class="meta-info" id="metaInfo">
+                <div class="line-skeleton" style="height: 2.6rem; width: 180px;"></div>
+                <div class="line-skeleton" style="height: 2.6rem; width: 150px;"></div>
+            </div>
+
+            <div class="hero-price-card">
+                <div class="hero-price-label">Giá ebook</div>
+                <div class="hero-price" id="ebookPrice">...</div>
+
                 <div class="purchase-actions">
                     <button class="btn btn-primary btn-large" id="buyBtn" disabled>💰 Mua ngay</button>
-                    <button class="btn btn-secondary btn-large" type="button">❤️ Yêu thích</button>
+                    <button class="btn btn-secondary btn-large" id="openBookBtn" type="button" style="display:none;">
+                        📖 Mở sách
+                    </button>
+                </div>
+
+                <div class="ownership-note" id="ownershipNote"></div>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-label">Tác giả</div>
+                    <div class="info-value" id="infoAuthor">...</div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-label">Danh mục</div>
+                    <div class="info-value" id="infoCategory">...</div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-label">Trạng thái truy cập</div>
+                    <div class="info-value" id="infoAccess">...</div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-label">Định dạng</div>
+                    <div class="info-value" id="infoFormat">...</div>
                 </div>
             </div>
 
             <div class="description-section">
-                <h2>📝 Mô tả</h2>
-                <div class="description-text loading-skeleton" id="ebookDescription" style="height: 150px;"></div>
+                <h2>📝 Mô tả sách</h2>
+                <div class="description-text block-skeleton" id="ebookDescription" style="height: 140px;"></div>
+
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <div class="feature-icon">🔒</div>
+                        <div>
+                            Người chưa mua chỉ xem phần giới thiệu và thông tin sách, không mở full nội dung ngay tại
+                            trang detail.
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">⚡</div>
+                        <div>
+                            Sau khi mua thành công, hệ thống mở quyền truy cập đầy đủ và bạn có thể đọc file gốc ở tab
+                            riêng.
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">📚</div>
+                        <div>
+                            Sách đã mua sẽ được lưu vào thư viện cá nhân của bạn.
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
 </div>
+
+<div id="purchaseModal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <div class="modal-head">
+            <h3>Xác nhận mua ebook</h3>
+            <button type="button" class="modal-close" onclick="closePurchaseModal()">✕</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="purchase-summary">
+                <div class="purchase-title" id="purchaseBookTitle">Tên sách</div>
+                <div class="purchase-price" id="purchaseBookPrice">0 Coins</div>
+                <div class="purchase-help">
+                    Sau khi thanh toán, sách sẽ được mở quyền truy cập đầy đủ trong tài khoản của bạn.
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-secondary" type="button" onclick="closePurchaseModal()">Hủy</button>
+            <button class="btn btn-primary" type="button" id="confirmPurchaseBtn">Xác nhận mua</button>
+        </div>
+    </div>
+</div>
+
+<div id="appToast" class="app-toast hidden"></div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
     const ebookId = parseInt("{{ ebook_id }}", 10);
+    const isAuthenticated = "{{ request.user.is_authenticated|yesno:'true,false' }}" === "true";
+    let currentEbook = null;
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('appToast');
+        toast.textContent = message;
+        toast.className = `app-toast ${type}`;
+        toast.classList.remove('hidden');
+
+        setTimeout(() => {
+            toast.classList.add('hidden');
+        }, 2800);
+    }
+
+    function openPurchaseModal() {
+        if (!currentEbook) return;
+        document.getElementById('purchaseBookTitle').textContent = currentEbook.title || 'Ebook';
+        document.getElementById('purchaseBookPrice').textContent = `${currentEbook.price} Coins`;
+        document.getElementById('purchaseModal').classList.remove('hidden');
+    }
+
+    function closePurchaseModal() {
+        document.getElementById('purchaseModal').classList.add('hidden');
+    }
+
+    function renderCoverPanel(ebook) {
+        const coverCard = document.getElementById('coverCard');
+        const isOwned = !!ebook.is_owned;
+        const badgeClass = isOwned ? 'owned' : 'locked';
+        const badgeText = isOwned ? 'Đã sở hữu' : 'Chưa sở hữu';
+        const noteText = isOwned
+            ? 'Bạn đã mua sách này. Có thể mở toàn bộ file đầy đủ ở tab riêng.'
+            : 'Bạn đang xem giao diện thông tin sách. Mua ngay để mở quyền truy cập đầy đủ.';
+
+        const coverHtml = ebook.cover
+            ? `<img class="cover-image" src="${ebook.cover}" alt="${ebook.title}">`
+            : `
+                <div class="cover-placeholder">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">📘</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">
+                        ${ebook.title || 'Ebook'}
+                    </div>
+                    <div>Chưa có ảnh bìa cho sách này.</div>
+                </div>
+            `;
+
+        const actionHtml = isOwned && ebook.file_url
+            ? `
+                <a class="btn btn-primary btn-large" href="${ebook.file_url}" target="_blank" rel="noopener">
+                    📖 Mở file đầy đủ
+                </a>
+            `
+            : `
+                <button class="btn btn-primary btn-large" type="button" onclick="openPurchaseModal()">
+                    💰 Mua ngay
+                </button>
+            `;
+
+        coverCard.innerHTML = `
+            ${coverHtml}
+            <div class="cover-overlay">
+                <div class="access-chip ${badgeClass}">${badgeText}</div>
+                <div class="cover-note">${noteText}</div>
+                <div class="cover-actions">${actionHtml}</div>
+            </div>
+        `;
+    }
+
+    function fillInfoCards(ebook) {
+        document.getElementById('infoAuthor').textContent = ebook.author?.name || 'Đang cập nhật';
+        document.getElementById('infoCategory').textContent = ebook.category || 'Chưa phân loại';
+        document.getElementById('infoAccess').textContent = ebook.is_owned ? 'Đã mở full nội dung' : 'Chưa mua / đang khóa';
+        document.getElementById('infoFormat').textContent = ebook.file_mime || 'Không xác định';
+    }
+
+    function renderActionState(ebook) {
+        const buyBtn = document.getElementById('buyBtn');
+        const openBookBtn = document.getElementById('openBookBtn');
+        const ownershipNote = document.getElementById('ownershipNote');
+        const badge = document.getElementById('readerBadge');
+
+        badge.textContent = ebook.is_owned ? 'Đã mua' : 'Thông tin sách';
+
+        if (ebook.is_owned) {
+            buyBtn.textContent = '✅ Đã sở hữu';
+            buyBtn.disabled = true;
+            buyBtn.onclick = null;
+
+            if (ebook.file_url) {
+                openBookBtn.style.display = 'inline-flex';
+                openBookBtn.onclick = function () {
+                    window.open(ebook.file_url, '_blank', 'noopener');
+                };
+            } else {
+                openBookBtn.style.display = 'none';
+                openBookBtn.onclick = null;
+            }
+
+            ownershipNote.innerHTML = `<span class="status-ok">Bạn đã mua sách này. Hệ thống đã mở quyền truy cập đầy đủ.</span>`;
+        } else {
+            buyBtn.textContent = '💰 Mua ngay';
+            buyBtn.disabled = false;
+            buyBtn.onclick = openPurchaseModal;
+
+            openBookBtn.style.display = 'none';
+            openBookBtn.onclick = null;
+
+            ownershipNote.innerHTML = `<span class="status-locked">Bạn chưa sở hữu sách này. Hãy mua để mở full nội dung.</span>`;
+        }
+    }
 
     async function loadEbookDetail() {
         try {
-            const response = await fetch(`/api/ebooks/ebook/${ebookId}/`);
-            if (!response.ok) throw new Error("Fetch failed");
-            const ebook = await response.json();
+            const response = await fetch(`/api/ebooks/ebook/${ebookId}/`, {
+                credentials: 'same-origin'
+            });
 
-            const titleEl = document.getElementById('ebookTitle');
-            titleEl.textContent = ebook.title;
-            document.getElementById('titleSkeleton').style.display = 'none';       
+            if (!response.ok) {
+                throw new Error('Fetch failed');
+            }
+
+            const ebook = await response.json();
+            currentEbook = ebook;
+
+            document.getElementById('ebookTitle').textContent = ebook.title || 'Không có tiêu đề';
+            document.getElementById('titleSkeleton').style.display = 'none';
 
             document.getElementById('metaInfo').innerHTML = `
-                <div class="meta-item"><span>👤</span><span>${ebook.author?.name || ''}</span></div>
-                <div class="meta-item"><span>📂</span><span>${ebook.category || ''}</span></div>
+                <div class="meta-item"><span>👤</span><span>${ebook.author?.name || 'Đang cập nhật'}</span></div>
+                <div class="meta-item"><span>📂</span><span>${ebook.category || 'Chưa phân loại'}</span></div>
             `;
 
             document.getElementById('ebookPrice').textContent = `${ebook.price} 💰`;
 
             const descEl = document.getElementById('ebookDescription');
-            descEl.textContent = ebook.description || '';
-            descEl.classList.remove('loading-skeleton');
+            descEl.textContent = ebook.description || 'Chưa có mô tả cho sách này.';
+            descEl.classList.remove('block-skeleton');
+            descEl.style.height = 'auto';
 
-            const buyBtn = document.getElementById('buyBtn');
-            buyBtn.disabled = false;
-            buyBtn.onclick = () => purchaseEbook(ebook.id, ebook.price);
-
-            const badge = document.getElementById('readerBadge');
-            badge.textContent = ebook.file_mime ? ebook.file_mime : '';
-
-            const reader = document.getElementById('ebookReader');
-            reader.classList.remove('loading-skeleton');
-
-            if (ebook.file_url) {
-                const isPdf = (ebook.file_mime === 'application/pdf') ||
-                    (ebook.file_url && ebook.file_url.toLowerCase().endsWith('.pdf'));
-
-                if (isPdf) {
-                    reader.innerHTML = `<iframe class="reader-frame" src="${ebook.file_url}" loading="lazy"></iframe>`;
-                } else {
-                    reader.innerHTML = `
-                        <div class="reader-hint">
-                            File sách là <b>${ebook.file_mime || 'định dạng khác'}</b>. Bạn có thể mở hoặc tải:
-                        </div>
-                        <div class="reader-actions">
-                            <a class="btn btn-primary btn-large" href="${ebook.file_url}" target="_blank" rel="noopener">
-                                📥 Mở / Tải file sách
-                            </a>
-                        </div>
-                    `;
-                }
-            } else {
-                reader.innerHTML = `<div class="reader-hint">Chưa có file sách. Admin vui lòng upload file.</div>`;
-            }
-
+            renderCoverPanel(ebook);
+            fillInfoCards(ebook);
+            renderActionState(ebook);
         } catch (error) {
-            const titleEl = document.getElementById('ebookTitle');
-            titleEl.textContent = 'Không tìm thấy sách';
-            titleEl.classList.remove('loading-skeleton');
+            document.getElementById('ebookTitle').textContent = 'Không tìm thấy sách';
+            document.getElementById('titleSkeleton').style.display = 'none';
+            document.getElementById('metaInfo').innerHTML = '';
+            document.getElementById('ebookPrice').textContent = '--';
 
             const descEl = document.getElementById('ebookDescription');
-            descEl.textContent = 'Vui lòng quay lại trang chủ';
-            descEl.classList.remove('loading-skeleton');
+            descEl.textContent = 'Không thể tải dữ liệu sách. Vui lòng kiểm tra lại API hoặc dữ liệu ebook.';
+            descEl.classList.remove('block-skeleton');
+            descEl.style.height = 'auto';
 
-            const reader = document.getElementById('ebookReader');
-            reader.classList.remove('loading-skeleton');
-            reader.innerHTML = `<div class="reader-hint">Không thể tải dữ liệu sách.</div>`;
+            document.getElementById('coverCard').innerHTML = `
+                <div class="cover-placeholder">
+                    Không thể tải ảnh bìa hoặc thông tin sách.
+                </div>
+            `;
+
+            document.getElementById('readerBadge').textContent = 'Lỗi tải dữ liệu';
         }
     }
 
-    async function purchaseEbook(ebookId, price) {
-        if (confirm(`Mua ebook này với ${price} Coins?`)) {
-            alert('Chức năng đang phát triển!');
+    async function purchaseEbook() {
+        if (!isAuthenticated) {
+            showToast('Bạn cần đăng nhập trước khi mua sách.', 'error');
+            setTimeout(() => {
+                window.location.href = '/login/';
+            }, 800);
+            return;
+        }
+
+        if (!currentEbook) return;
+
+        const confirmBtn = document.getElementById('confirmPurchaseBtn');
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Đang xử lý...';
+
+        try {
+            const response = await fetch('/api/transactions/purchase/', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ ebook_id: currentEbook.id })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                showToast(data.error || 'Mua sách thất bại', 'error');
+                return;
+            }
+
+            closePurchaseModal();
+            updateWalletBalance(data.balance_after);    
+            showToast(`${data.message}. Số dư còn lại: ${data.balance_after} Coins`, 'success');
+            await loadEbookDetail();
+        } catch (error) {
+            showToast('Có lỗi xảy ra khi mua sách.', 'error');
+        } finally {
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = 'Xác nhận mua';
         }
     }
 
+    document.getElementById('confirmPurchaseBtn').addEventListener('click', purchaseEbook);
     loadEbookDetail();
 </script>
 {% endblock %}
