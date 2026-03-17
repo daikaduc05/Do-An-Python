@@ -3,13 +3,20 @@ from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.views import APIView
-
+from rest_framework.pagination import PageNumberPagination
 from .models import Ebook, EbookReview, EbookReviewImage
 from apps.transactions.models import OwnedEbook
 from django.db.models import Avg, Count
 
+class EbookPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = "page_size"
+    max_page_size = 50
+
+
 class EbookListView(generics.ListAPIView):
     permission_classes = [AllowAny]
+    pagination_class = EbookPagination
 
     def get_queryset(self):
         return (
@@ -19,22 +26,23 @@ class EbookListView(generics.ListAPIView):
             .order_by("-created_at")
         )
 
-    def list(self, request):
-        ebooks = self.get_queryset()
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+
         data = []
-        for e in ebooks:
+        for e in page:
             data.append({
                 "id": e.id,
                 "title": e.title,
-                "author": e.author.name,
+                "author": e.author.name if e.author else "Chưa có tác giả",
                 "category": e.category.name if e.category else "Chưa phân loại",
                 "category_slug": e.category.slug if e.category else None,
                 "price": e.price,
                 "cover": getattr(e, "cover_url", None),
             })
-        return Response({"ebooks": data})
 
-
+        return self.get_paginated_response(data)
 class EbookDetailView(generics.RetrieveAPIView):
     permission_classes = [AllowAny]
 

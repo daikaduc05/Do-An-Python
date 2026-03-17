@@ -83,25 +83,42 @@
         <p>Đang tải thư viện sách...</p>
     </div>
 </div>
+<div id="pagination" class="flex justify-center items-center gap-2 mt-10 flex-wrap"></div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
     // Fetch ebooks from API
-    async function loadEbooks() {
-        try {
-            const response = await fetch('/api/ebooks/');
-            const data = await response.json();
-            displayEbooks(data.ebooks || []);
-        } catch (error) {
-            document.getElementById('ebookList').innerHTML = `
-                <div class="col-span-full text-center py-20">
-                    <p class="text-xl text-slate-400 mb-2">⚠️ Có lỗi xảy ra</p>
-                    <p class="text-slate-600">Không thể tải danh sách sách</p>
-                </div>
-            `;
+    let currentPage = 1;
+        let totalPages = 1;
+
+        async function loadEbooks(page = 1) {
+            currentPage = page;
+
+            try {
+                document.getElementById('ebookList').innerHTML = `
+            <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
+                <div class="w-10 h-10 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
+                <p>Đang tải thư viện sách...</p>
+            </div>
+        `;
+
+                const response = await fetch(`/api/ebooks/?page=${page}`);
+                const data = await response.json();
+
+                displayEbooks(data.results || []);
+                totalPages = Math.ceil((data.count || 0) / 20);
+                renderPagination(currentPage, totalPages);
+
+            } catch (error) {
+                document.getElementById('ebookList').innerHTML = `
+            <div class="col-span-full text-center py-20">
+                <p class="text-xl text-slate-400 mb-2">⚠️ Có lỗi xảy ra</p>
+                <p class="text-slate-600">Không thể tải danh sách sách</p>
+            </div>
+        `;
+            }
         }
-    }
 
     function getGradient(id) {
         const gradients = [
@@ -181,7 +198,7 @@
     }
 
     // Search functionality
-    let debounceTimer;
+    let debounceTimer;  
     document.getElementById('searchInput').addEventListener('input', (e) => {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(async () => {
@@ -208,8 +225,64 @@
             }
         }, 500); // Debounce
     });
+    function renderPagination(page, total) {
+            const container = document.getElementById('pagination');
 
+            if (total <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+
+            html += `
+        <button
+            class="px-4 py-2 rounded-xl border border-slate-700 bg-slate-800/50 text-slate-300 hover:border-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed"
+            ${page <= 1 ? 'disabled' : ''}
+            onclick="goToPage(${page - 1})"
+        >
+            ← Trước
+        </button>
+    `;
+
+            const start = Math.max(1, page - 2);
+            const end = Math.min(total, page + 2);
+
+            for (let i = start; i <= end; i++) {
+                html += `
+            <button
+                onclick="goToPage(${i})"
+                class="px-4 py-2 rounded-xl border transition-all ${i === page
+                        ? 'bg-indigo-600 border-indigo-500 text-white'
+                        : 'bg-slate-800/50 border-slate-700 text-slate-300 hover:border-indigo-500'
+                    }"
+            >
+                ${i}
+            </button>
+        `;
+            }
+
+            html += `
+        <button
+            class="px-4 py-2 rounded-xl border border-slate-700 bg-slate-800/50 text-slate-300 hover:border-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed"
+            ${page >= total ? 'disabled' : ''}
+            onclick="goToPage(${page + 1})"
+        >
+            Sau →
+        </button>
+    `;
+
+            container.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            loadEbooks(page);
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
     // Load ebooks on page load
-    loadEbooks();
+    loadEbooks(1);
 </script>
 {% endblock %}
