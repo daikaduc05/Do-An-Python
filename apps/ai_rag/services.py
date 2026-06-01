@@ -1,6 +1,6 @@
 """
 RAG Service tích hợp LangChain Memory
-Sử dụng ChatGoogleGenerativeAI + DjangoChatMessageHistory
+Sử dụng Groq (Llama) + sentence-transformers + DjangoChatMessageHistory
 """
 
 from sentence_transformers import SentenceTransformer
@@ -8,24 +8,35 @@ from django.conf import settings
 from pgvector.django import CosineDistance
 from apps.ebooks.models import Ebook
 
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from .memory import DjangoChatMessageHistory
 
+# Load once at module level so the 1.1GB model isn't reloaded on every request
+_embedding_model = SentenceTransformer('paraphrase-multilingual-mpnet-base-v2')
+
 
 class RAGService:
-    """Service for AI recommendations using Google Gemini with pgvector + LangChain Memory"""
+    """Service for AI recommendations using Groq (Llama) + sentence-transformers"""
+
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
 
     def __init__(self):
-        # sentence-transformers: paraphrase-multilingual-mpnet-base-v2 (768 dims, supports Vietnamese)
-        self.embedding_model = SentenceTransformer('paraphrase-multilingual-mpnet-base-v2')
-
-        # LangChain ChatGoogleGenerativeAI
-        self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
-            google_api_key=settings.GOOGLE_API_KEY,
+        if self._initialized:
+            return
+        self.embedding_model = _embedding_model
+        self.llm = ChatGroq(
+            model="llama-3.3-70b-versatile",
+            groq_api_key=settings.GROQ_API_KEY,
             temperature=0.7,
         )
+        self._initialized = True
 
     def get_embedding(self, text):
         """Tạo embedding vector từ text sử dụng sentence-transformers"""

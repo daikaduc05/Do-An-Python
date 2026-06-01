@@ -155,6 +155,8 @@ CORS_ALLOW_ALL_ORIGINS = True  # For development
 
 # Google Gemini API
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
+# Groq API
+GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 STATIC_URL = '/static/'
 import os
 from urllib.parse import urlparse
