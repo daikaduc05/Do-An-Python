@@ -32,7 +32,7 @@ class RAGService:
             return
         self.embedding_model = _embedding_model
         self.llm = ChatGroq(
-            model="llama3-70b-8192",
+            model="qwen/qwen3-32b",
             groq_api_key=settings.GROQ_API_KEY,
             temperature=0.7,
         )
