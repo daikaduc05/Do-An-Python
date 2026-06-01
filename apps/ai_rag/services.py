@@ -3,7 +3,7 @@ RAG Service tích hợp LangChain Memory
 Sử dụng ChatGoogleGenerativeAI + DjangoChatMessageHistory
 """
 
-import google.generativeai as genai
+from sentence_transformers import SentenceTransformer
 from django.conf import settings
 from pgvector.django import CosineDistance
 from apps.ebooks.models import Ebook
@@ -15,42 +15,31 @@ from .memory import DjangoChatMessageHistory
 
 class RAGService:
     """Service for AI recommendations using Google Gemini with pgvector + LangChain Memory"""
-    
+
     def __init__(self):
-        genai.configure(api_key=settings.GOOGLE_API_KEY)
-        # Google Gemini gemini-embedding-001 has 3072 dimensions
-        self.embedding_model = "models/gemini-embedding-001"
-        
+        # sentence-transformers: paraphrase-multilingual-mpnet-base-v2 (768 dims, supports Vietnamese)
+        self.embedding_model = SentenceTransformer('paraphrase-multilingual-mpnet-base-v2')
+
         # LangChain ChatGoogleGenerativeAI
         self.llm = ChatGoogleGenerativeAI(
             model="gemini-2.5-flash",
             google_api_key=settings.GOOGLE_API_KEY,
             temperature=0.7,
         )
-    
+
     def get_embedding(self, text):
-        """Tạo embedding vector từ text sử dụng Gemini"""
+        """Tạo embedding vector từ text sử dụng sentence-transformers"""
         try:
-            result = genai.embed_content(
-                model=self.embedding_model,
-                content=text,
-                task_type="retrieval_document",
-                title="Embedding of ebook text"
-            )
-            return result['embedding']
+            embedding = self.embedding_model.encode(text, normalize_embeddings=True)
+            return embedding.tolist()
         except Exception as e:
             print(f"Error creating embedding: {e}")
             return None
-    
+
     def search_similar_ebooks(self, query, top_k=5):
         """Tìm ebook tương tự bằng vector similarity"""
         try:
-            result = genai.embed_content(
-                model=self.embedding_model,
-                content=query,
-                task_type="retrieval_query"
-            )
-            query_embedding = result['embedding']
+            query_embedding = self.embedding_model.encode(query, normalize_embeddings=True).tolist()
         except Exception as e:
             print(f"Error creating query embedding: {e}")
             return Ebook.objects.none()

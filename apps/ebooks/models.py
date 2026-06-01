@@ -56,8 +56,8 @@ class Ebook(models.Model):
         blank=True,
         related_name="ebooks",
     )
-    # Vector embedding cho RAG (Google Gemini gemini-embedding-001: 3072 dimensions)
-    embedding = VectorField(dimensions=3072, null=True, blank=True)
+    # Vector embedding cho RAG (sentence-transformers paraphrase-multilingual-mpnet-base-v2: 768 dimensions)
+    embedding = VectorField(dimensions=768, null=True, blank=True)
 
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
