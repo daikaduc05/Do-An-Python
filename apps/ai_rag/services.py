@@ -1,6 +1,6 @@
 """
 RAG Service tích hợp LangChain Memory
-Sử dụng Groq (Llama) + sentence-transformers + DjangoChatMessageHistory
+Sử dụng OpenAI-compatible API + sentence-transformers + DjangoChatMessageHistory
 """
 
 from sentence_transformers import SentenceTransformer
@@ -8,7 +8,7 @@ from django.conf import settings
 from pgvector.django import CosineDistance
 from apps.ebooks.models import Ebook
 
-from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from .memory import DjangoChatMessageHistory
 
@@ -17,7 +17,7 @@ _embedding_model = SentenceTransformer('paraphrase-multilingual-mpnet-base-v2')
 
 
 class RAGService:
-    """Service for AI recommendations using Groq (Llama) + sentence-transformers"""
+    """Service for AI recommendations using custom LLM API + sentence-transformers"""
 
     _instance = None
 
@@ -31,9 +31,10 @@ class RAGService:
         if self._initialized:
             return
         self.embedding_model = _embedding_model
-        self.llm = ChatGroq(
-            model="qwen3-32b",
-            groq_api_key=settings.GROQ_API_KEY,
+        self.llm = ChatOpenAI(
+            model=settings.LLM_MODEL,
+            api_key=settings.LLM_API_KEY,
+            base_url=settings.LLM_BASE_URL,
             temperature=0.7,
         )
         self._initialized = True

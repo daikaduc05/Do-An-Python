@@ -155,8 +155,10 @@ CORS_ALLOW_ALL_ORIGINS = True  # For development
 
 # Google Gemini API
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
-# Groq API
-GROQ_API_KEY = os.getenv('GROQ_API_KEY')
+# LLM API (OpenAI-compatible)
+LLM_API_KEY = os.getenv('LLM_API_KEY')
+LLM_BASE_URL = os.getenv('LLM_BASE_URL', 'https://llm.wokushop.com/v1')
+LLM_MODEL = os.getenv('LLM_MODEL', 'gemini-2.5-flash')
 STATIC_URL = '/static/'
 import os
 from urllib.parse import urlparse
