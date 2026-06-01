@@ -62,7 +62,7 @@ class SemanticSearchView(APIView):
             'author': e.author.name,
             'category': e.get_category_display(),
             'price': e.price,
-            'cover': e.cover_image.url if e.cover_image else None,
+            'cover': e.cover_url,
         } for e in ebooks]
         
         return Response({'results': data})
